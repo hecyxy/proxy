@@ -5,13 +5,13 @@ package space.cosmos.one.mysql.gprc;
  */
 public class InternalChannelOption {
     //地址
-    private String address;
+    private String address = "localhost";
     //端口
-    private int port = 1234;
+    private int port = 1888;
     //是否使用明文
-    private boolean usePlainText;
+    private boolean usePlainText = true;
     //超时时间 秒
-    private int timeout;
+    private int timeout = 5;
     //最大消息长度
     private int maxInboundMessageSize = 4 * 1024 * 1024;
 

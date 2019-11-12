@@ -9,13 +9,12 @@ import org.testng.annotations.BeforeSuite;
 public abstract class TestGrpcBase {
 
 
-    public static ManagedChannel channel;
+    public static ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 9899)
+            .usePlaintext()
+            .build();
 
     @BeforeSuite
-    @BeforeClass
     public void init() {
-        channel = ManagedChannelBuilder.forAddress("localhost", 9899)
-                .build();
         System.out.println("init success ");
     }
 }

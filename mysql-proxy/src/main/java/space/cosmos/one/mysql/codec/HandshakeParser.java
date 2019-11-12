@@ -1,7 +1,23 @@
 package space.cosmos.one.mysql.codec;
 
-import java.lang.reflect.ParameterizedType;
+import io.netty.buffer.ByteBuf;
+import space.cosmos.one.mysql.constant.RemotingType;
 
-public class HandshakeParser extends Parser {
 
+public class HandshakeParser implements Parser {
+
+    @Override
+    public void parse(ByteBuf buffer, RemotingType type) {
+
+    }
+
+    @Override
+    public void close() {
+
+    }
+
+    @Override
+    public void setUserAddress(String address) {
+
+    }
 }

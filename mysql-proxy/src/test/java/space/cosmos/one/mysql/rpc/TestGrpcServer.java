@@ -24,6 +24,7 @@ class CommunicateServiceGrpcImpl extends CommunicateServiceGrpc.CommunicateServi
             @Override
             public void onNext(Info value) {
                 System.err.println("stream client receive " + value.getMsg());
+                responseObserver.onNext(Info.newBuilder().setMsg("stream client end").setFlag("sc").build());
             }
 
             @Override
@@ -48,7 +49,7 @@ class CommunicateServiceGrpcImpl extends CommunicateServiceGrpc.CommunicateServi
     @Override
     public StreamObserver<Info> double_(StreamObserver<Info> responseObserver) {
         return new StreamObserver<Info>() {
-            List<String> str = new ArrayList<String>(5);
+            List<String> str = new ArrayList<>(5);
 
             @Override
             public void onNext(Info value) {
@@ -65,8 +66,8 @@ class CommunicateServiceGrpcImpl extends CommunicateServiceGrpc.CommunicateServi
             public void onCompleted() {
                 for (int i = 0; i < 4; i++) {
                     responseObserver.onNext(Info.newBuilder().setMsg(String.valueOf(i)).build());
-                    responseObserver.onCompleted();
                 }
+                responseObserver.onCompleted();
             }
         };
     }

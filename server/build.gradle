@@ -1,0 +1,10 @@
+apply plugin: 'application'
+
+mainClassName = "space.cosmos.one.mysql.Bootstrap"
+
+dependencies {
+    compile project(':grpc')
+    implementation "io.grpc:grpc-netty-shaded:$grpc_version"
+    implementation group: 'com.google.protobuf', name: 'protobuf-java-util', version: '3.6.1'
+
+}

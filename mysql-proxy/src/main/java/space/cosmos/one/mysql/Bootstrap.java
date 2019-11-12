@@ -4,7 +4,6 @@ import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import space.cosmos.one.mysql.codec.HandshakeParser;
 import space.cosmos.one.mysql.codec.MysqlParser;
 import space.cosmos.one.mysql.gprc.ChannelCreator;
 import space.cosmos.one.mysql.gprc.InternalChannelOption;
@@ -36,6 +35,7 @@ public class Bootstrap extends Thread {
 
     private ManagedChannel channel = ChannelCreator.singleChannel(option);
     private ConnectionManager manager;
+
     private Bootstrap() {
         instanceStub = InstanceServiceGrpc.newStub(channel);
         recorder = new CmdRecorderService(RecordServiceGrpc.newStub(channel));
@@ -48,9 +48,10 @@ public class Bootstrap extends Thread {
             public void onNext(ListInstance.Response value) {
                 connected.set(true);
                 value.getInstanceList().forEach(instance -> {
-                    InetSocketAddress front = new InetSocketAddress((int) instance.getId() + 1000);
+                    logger.info(String.format("[instance msg] id: %s; host:%s port:%s", instance.getId(), instance.getHost(), instance.getPort()));
+                    InetSocketAddress front = new InetSocketAddress((int) instance.getId() + 1024);
                     InetSocketAddress backend = new InetSocketAddress(instance.getHost(), instance.getPort());
-                    ConnectionConfig config = new ConnectionConfig(instance.getId(),front,backend,new MysqlParser());
+                    ConnectionConfig config = new ConnectionConfig(instance.getId(), front, backend, new MysqlParser());
                     manager.replaceOrAdd(config);
                 });
             }
@@ -74,6 +75,7 @@ public class Bootstrap extends Thread {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> boot.shutdown()));
     }
 
     @Override
@@ -85,7 +87,7 @@ public class Bootstrap extends Thread {
             }
             instanceObserver.onNext(ListInstance.Request.getDefaultInstance());
             try {
-                latch.await(10, TimeUnit.SECONDS);
+                latch.await(60, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 logger.warn("latch wait error", e);
             }

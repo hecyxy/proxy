@@ -1,4 +1,5 @@
 rootProject.name = 'proxy'
 include 'mysql-proxy'
 include 'grpc'
+include 'server'
 

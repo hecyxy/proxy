@@ -28,7 +28,7 @@ public class TestGrpcClient extends TestGrpcBase {
     void single() {
 
     }
-
+    @Test
     void c2s() {
         StreamObserver<Info> request = newStub.c2s(new StreamObserver<Info>() {
             @Override
@@ -75,26 +75,42 @@ public class TestGrpcClient extends TestGrpcBase {
                 }
             });
         }
+        try {
+            Thread.sleep(5 * 1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
     }
 
     @Test
     void s2s() {
-         newStub.double_(new StreamObserver<Info>() {
-             @Override
-             public void onNext(Info value) {
-                 System.out.println(value.getMsg() + " s2s " + value.getFlag());
-             }
+        StreamObserver<Info> streamRequest = newStub.double_(new StreamObserver<Info>() {
+            @Override
+            public void onNext(Info value) {
 
-             @Override
-             public void onError(Throwable t) {
+                System.out.println(value.getMsg() + " s2s " + value.getFlag());
+            }
 
-             }
+            @Override
+            public void onError(Throwable t) {
 
-             @Override
-             public void onCompleted() {
-                 System.out.println("s2s to end...");
-             }
-         });
+            }
 
+            @Override
+            public void onCompleted() {
+                System.out.println("s2s to end...");
+            }
+        });
+
+        Stream.of("h", "b", "c")
+                .map(it -> Info.newBuilder().setFlag("s s").setMsg(it).build())
+                .forEach(streamRequest::onNext);
+        streamRequest.onCompleted();
+        try {
+            Thread.sleep(2*1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

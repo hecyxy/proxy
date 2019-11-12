@@ -10,13 +10,17 @@ public class ConnectionConfig {
     private InetSocketAddress frontend;
     private InetSocketAddress backend;
     private Recorder recorder;
-    private Parser decoder;
+    private Parser parser;
 
     public ConnectionConfig(long id, InetSocketAddress front, InetSocketAddress backend, Parser decoder) {
         this.id = id;
         this.frontend = front;
         this.backend = backend;
-        this.decoder = decoder;
+        this.parser = decoder;
+    }
+
+    public Parser getParser() {
+        return parser;
     }
 
     public Long getId() {

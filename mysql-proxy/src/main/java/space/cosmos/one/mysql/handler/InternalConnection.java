@@ -11,6 +11,10 @@ import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import space.cosmos.one.mysql.util.OsUtil;
 
 import java.util.concurrent.ThreadFactory;
@@ -18,7 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class InternalConnection {
-
+    private static final Logger logger = LoggerFactory.getLogger(InternalConnection.class);
     private ServerBootstrap serverBootstrap;
     private final EventLoopGroup eventLoopGroupBoss;
     private final EventLoopGroup eventLoopGroupSelector;
@@ -83,16 +87,18 @@ public class InternalConnection {
                         .channel(useEpoll() ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
                         .option(ChannelOption.SO_REUSEADDR, true)
                         .option(ChannelOption.SO_BACKLOG, 1024 * 3)
+                        .handler(new LoggingHandler(LogLevel.DEBUG))
                         .childHandler(new ChannelInitializer<SocketChannel>() {
                             @Override
                             public void initChannel(SocketChannel ch) {
-                                ch.pipeline()
-                                        .addLast(new FrontedHandler(config));
+//                                ch.pipeline().addLast("logging", new LoggingHandler());
+                                ch.pipeline().addLast("front handler",new FrontedHandler(config));
                             }
                         });
 
                 try {
                     channelFuture = serverBootstrap.bind(config.getFrontend().getPort()).sync();
+                    logger.info(String.format("success bind on port: %s", config.getFrontend().getPort()));
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
