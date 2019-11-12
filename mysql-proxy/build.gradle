@@ -6,4 +6,6 @@ dependencies {
     compile project(':grpc')
     implementation 'io.netty:netty-all:4.1.32.Final'
     implementation "io.grpc:grpc-netty-shaded:$grpc_version"
+    implementation group: 'com.google.protobuf', name: 'protobuf-java-util', version: '3.6.1'
+
 }

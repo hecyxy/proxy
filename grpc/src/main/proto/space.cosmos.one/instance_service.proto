@@ -13,7 +13,7 @@ service InstanceService {
 
 message ListInstance {
     message Request {
-        //version
+        string version = 1;
     }
     message Response {
         //version

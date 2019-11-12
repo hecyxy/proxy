@@ -47,6 +47,7 @@ class InstanceServiceGrpcImpl extends InstanceServiceGrpc.InstanceServiceImplBas
 
             @Override
             public void onNext(ListInstance.Request value) {
+                System.out.println(value.getVersion());
                 ListInstance.Response.Instance.Builder builder = ListInstance.Response.Instance.newBuilder();
                 builder.setId(count.getAndIncrement());
                 builder.setHost("192.168.8.13");
