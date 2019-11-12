@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package mysql.proxy;
+option java_multiple_files = true;
+option java_package = "space.cosmos.one.proxy.mysql";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+message SqlRequest {
+    int64 instanceId = 1;
+    string database = 2;
+    string cmd = 3;
+    google.protobuf.Timestamp startAt = 4;
+}
+
+message Response {
+    message OK {
+        int64 rows = 1;
+        int32 warnings = 2;
+        google.protobuf.Timestamp completeAt = 3;
+    }
+    message ERROR {
+        int32 code = 1;
+        string state = 2;
+        string msg = 3;
+        google.protobuf.Timestamp endAt = 4;
+    }
+}
+message RecordItem {
+    string uuid = 1;
+    string clientIp = 2;
+    SqlRequest request = 3;
+    Response resp = 4;
+}
+
+service RecordService {
+    rpc Record (stream RecordItem) returns (google.protobuf.Empty);
+}

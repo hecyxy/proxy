@@ -1,0 +1,76 @@
+apply plugin: 'com.google.protobuf'
+apply plugin: 'maven-publish'
+dependencies {
+    compile "io.grpc:grpc-protobuf:$grpc_version"
+    compile "io.grpc:grpc-stub:$grpc_version"
+}
+
+sourceSets {
+
+    main {
+        proto {
+            srcDir 'src/main/proto'
+        }
+        java {
+            srcDirs 'src/main/java', "${protobuf.generatedFilesBaseDir}/main/java", "${protobuf.generatedFilesBaseDir}/main/grpc"
+        }
+    }
+}
+
+protobuf {
+    generatedFilesBaseDir = "${projectDir}/src/generated"
+
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.0.0"
+    }
+
+    plugins {
+        grpc {
+            artifact = "io.grpc:protoc-gen-grpc-java:$grpc_version"
+        }
+    }
+
+    generateProtoTasks {
+        all()*.plugins {
+            grpc {
+                option 'enable_deprecated=false'
+            }
+        }
+    }
+}
+
+idea {
+    module {
+        sourceDirs += file("${protobuf.generatedFilesBaseDir}/main/java")
+        sourceDirs += file("${protobuf.generatedFilesBaseDir}/main/grpc")
+    }
+}
+
+task sourceJar(type: Jar) {
+    from sourceSets.main.allSource
+    classifier "sources"
+}
+
+publishing {
+
+    repositories {
+        maven {
+//            name "snapshots"
+            url = "" // org_ip/repositories/${version.endsWith('SNAPSHOT') ? 'snapshots' : 'releases'}
+            credentials {
+                username = publish_username
+                password = publish_password
+            }
+        }
+    }
+
+    publications {
+        maven(MavenPublication) {
+            artifactId  = "space-cosmos-one"
+            from components.java
+            if (!project.getTasksByName("sourceJar", false).isEmpty()) {
+                artifact sourceJar
+            }
+        }
+    }
+}

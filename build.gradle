@@ -1,0 +1,53 @@
+buildscript{
+    ext.grpc_version = '1.25.0'
+    ext.slf4j_version = '1.7.25'
+    ext.testng_version = '6.9.6'
+
+    repositories {
+        mavenLocal()
+        maven { url "https://maven.aliyun.com/repository/central"}
+        maven {url "https://maven.aliyun.com/repository/jcenter"}
+        maven { url "https://dl.bintray.com/promeg/maven/" }
+    }
+
+    dependencies {
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.1'
+    }
+}
+
+subprojects{
+    group 'space.cosmos.one'
+    version '1.0-SNAPSHOT'
+
+    apply plugin: 'idea'
+    apply plugin: 'java'
+
+    sourceCompatibility = 1.8
+
+    repositories {
+        mavenLocal()
+        maven { url "https://maven.aliyun.com/repository/central"}
+        maven {url "https://maven.aliyun.com/repository/jcenter"}
+        maven { url "https://dl.bintray.com/promeg/maven/" }
+        maven { url "https://dl.bintray.com/promeg/maven/" }
+    }
+
+    dependencies {
+
+        testCompile "org.testng:testng:${testng_version}"
+        //log4j
+        compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.8'
+        compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.8'
+
+        //log
+        compile 'ch.qos.logback:logback-classic:1.1.7'
+        compile "org.slf4j:slf4j-api:${slf4j_version}"
+
+    }
+
+    //noinspection GroovyAssignabilityCheck
+    tasks.withType(JavaCompile) {
+        options.encoding = "UTF-8"
+    }
+}
+

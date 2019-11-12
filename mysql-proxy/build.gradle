@@ -1,0 +1,9 @@
+apply plugin: 'application'
+
+mainClassName = "space.cosmos.one.mysql.Bootstrap"
+
+dependencies {
+    compile project(':grpc')
+    implementation 'io.netty:netty-all:4.1.32.Final'
+    implementation "io.grpc:grpc-netty-shaded:$grpc_version"
+}
