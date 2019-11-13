@@ -1,6 +1,25 @@
 package space.cosmos.one.mysql.server.config;
 
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+
+
 public class DbConfig {
-    public static final String dbUrl = "172.16.52.81";
-    public static final String dbUrl2 = "192.168.8.13";
+    static Config config;
+
+    /**
+     * config content is as this
+     * server{
+     *     server1: "",
+     *     server2: ""
+     * }
+     */
+    static {
+        config = ConfigFactory.load("db.conf");
+    }
+
+
+    public static Config getConfig() {
+        return config;
+    }
 }
