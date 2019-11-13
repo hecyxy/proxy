@@ -28,9 +28,9 @@ public class FrontedHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         try {
-            parser.parse((ByteBuf) msg, RemotingType.USER_TO_PROXY);
+            config.getMpsc().add((ByteBuf) msg);
         } catch (Exception e) {
-            logger.error("front handler parse error", e);
+            logger.warn("add bytebuf error", e);
         }
         logger.info("front receive msg");
         proxy2Server.writeAndFlush(msg).addListener((ChannelFutureListener) future -> {

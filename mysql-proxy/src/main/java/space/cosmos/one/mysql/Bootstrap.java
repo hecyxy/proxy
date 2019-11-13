@@ -2,6 +2,8 @@ package space.cosmos.one.mysql;
 
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
+import io.netty.buffer.ByteBuf;
+import org.jctools.queues.MpscChunkedArrayQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import space.cosmos.one.mysql.codec.MysqlParser;
@@ -35,11 +37,13 @@ public class Bootstrap extends Thread {
 
     private ManagedChannel channel = ChannelCreator.singleChannel(option);
     private ConnectionManager manager;
+    private MpscChunkedArrayQueue<ByteBuf> mpsc;
 
     private Bootstrap() {
         instanceStub = InstanceServiceGrpc.newStub(channel);
         recorder = new CmdRecorderService(RecordServiceGrpc.newStub(channel));
         manager = new ConnectionManager();
+        this.mpsc = new MpscChunkedArrayQueue<>(2048);
     }
 
     private StreamObserver<ListInstance.Request> newObserver() {
@@ -51,7 +55,7 @@ public class Bootstrap extends Thread {
                     logger.info(String.format("[instance msg] id: %s; host:%s port:%s", instance.getId(), instance.getHost(), instance.getPort()));
                     InetSocketAddress front = new InetSocketAddress((int) instance.getId() + 1024);
                     InetSocketAddress backend = new InetSocketAddress(instance.getHost(), instance.getPort());
-                    ConnectionConfig config = new ConnectionConfig(instance.getId(), front, backend, new MysqlParser());
+                    ConnectionConfig config = new ConnectionConfig(instance.getId(), front, backend, mpsc);
                     manager.replaceOrAdd(config);
                 });
             }

@@ -7,5 +7,6 @@ dependencies {
     implementation 'io.netty:netty-all:4.1.32.Final'
     implementation "io.grpc:grpc-netty-shaded:$grpc_version"
     implementation group: 'com.google.protobuf', name: 'protobuf-java-util', version: '3.6.1'
-
+    // https://mvnrepository.com/artifact/org.jctools/jctools-core
+    implementation group: 'org.jctools', name: 'jctools-core', version: '2.1.2'
 }
