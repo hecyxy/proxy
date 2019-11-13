@@ -19,25 +19,24 @@ public class FrontedHandler extends ChannelInboundHandlerAdapter {
 
     private Channel proxy2Server;
 
-    public FrontedHandler(ConnectionConfig config) {
+    FrontedHandler(ConnectionConfig config) {
         this.config = config;
         this.parser = config.getParser();
         //record
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
         try {
             parser.parse((ByteBuf) msg, RemotingType.USER_TO_PROXY);
         } catch (Exception e) {
-
+            logger.error("front handler parse error", e);
         }
         logger.info("front receive msg");
         proxy2Server.writeAndFlush(msg).addListener((ChannelFutureListener) future -> {
             if (future.isSuccess()) {
                 //todo
                 ctx.channel().read();
-                logger.info("write success");
             } else {
                 logger.error("write error");
                 ctx.channel().close();
@@ -57,9 +56,9 @@ public class FrontedHandler extends ChannelInboundHandlerAdapter {
                 .remoteAddress(config.getBackend())
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
-                    protected void initChannel(SocketChannel ch) throws Exception {
+                    protected void initChannel(SocketChannel ch) {
                         ch.pipeline().addLast("backend logging", new LoggingHandler());
-                        ch.pipeline().addLast("backend handler",new BackendHandler(ctx.channel(), config.getParser()));
+                        ch.pipeline().addLast("backend handler", new BackendHandler(ctx.channel(), config.getParser()));
                     }
                 });
         ChannelFuture future = boot.connect();

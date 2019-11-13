@@ -73,4 +73,3 @@ fabric.properties
 
 **/generated/
 .idea
-server/src/main/java/space/cosmos/one/mysql/server/config/DbConfig.java

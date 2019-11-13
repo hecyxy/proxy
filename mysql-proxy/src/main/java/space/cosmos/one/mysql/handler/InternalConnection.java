@@ -30,7 +30,7 @@ public class InternalConnection {
     private ChannelFuture channelFuture;
     private ConnectionConfig config;
 
-    public InternalConnection(ConnectionConfig config) {
+    InternalConnection(ConnectionConfig config) {
         if (useEpoll()) {
             this.eventLoopGroupBoss = new EpollEventLoopGroup(1, new ThreadFactory() {
                 private AtomicInteger threadIndex = new AtomicInteger(0);
