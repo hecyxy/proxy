@@ -9,7 +9,7 @@ public class DbConfig {
 
     /**
      * config content is as this
-     * server{
+     * mysql {
      *     server1: "",
      *     server2: ""
      * }

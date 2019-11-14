@@ -20,5 +20,6 @@ public class Application {
         } catch (Exception e) {
             logger.warn("server start error", e);
         }
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> server.shutdown()));
     }
 }

@@ -3,19 +3,21 @@ package space.cosmos.one.mysql.codec;
 import io.netty.buffer.ByteBuf;
 import space.cosmos.one.mysql.constant.RemotingType;
 
-public class MysqlParser implements Parser {
-    @Override
-    public void parse(ByteBuf buffer, RemotingType type) {
+public abstract class MysqlParser<T> {
+    protected ByteBuf packet;
+    private T body;
 
+    public abstract T decode();
+    public MysqlParser(ByteBuf packet) {
+        this.packet = packet;
     }
 
-    @Override
-    public void close() {
-
+    boolean isDecodeHeader() {
+        return true;
     }
 
-    @Override
-    public void setUserAddress(String address) {
 
+    public T getBody() {
+        return body;
     }
 }

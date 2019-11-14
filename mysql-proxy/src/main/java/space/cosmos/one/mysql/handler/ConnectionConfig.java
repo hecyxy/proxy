@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf;
 import org.jctools.queues.MpscChunkedArrayQueue;
 import space.cosmos.one.mysql.codec.Parser;
 import space.cosmos.one.mysql.gprc.remoting.Recorder;
+import space.cosmos.one.mysql.util.CmdInfo;
 
 import java.net.InetSocketAddress;
 
@@ -12,14 +13,15 @@ public class ConnectionConfig {
     private InetSocketAddress frontend;
     private InetSocketAddress backend;
     private Recorder recorder;
-    private Parser parser;
-    private MpscChunkedArrayQueue<ByteBuf> mpsc;
+    private MpscChunkedArrayQueue<CmdInfo> mpsc;
 
-    public void setMpsc(MpscChunkedArrayQueue<ByteBuf> mpsc) {
+    private CmdInfo cmdInfo;
+
+    public void setMpsc(MpscChunkedArrayQueue<CmdInfo> mpsc) {
         this.mpsc = mpsc;
     }
 
-    public MpscChunkedArrayQueue<ByteBuf> getMpsc() {
+    public MpscChunkedArrayQueue<CmdInfo> getMpsc() {
         return mpsc;
     }
 
@@ -30,9 +32,6 @@ public class ConnectionConfig {
         this.mpsc = queue;
     }
 
-    public Parser getParser() {
-        return parser;
-    }
 
     public Long getId() {
         return id;

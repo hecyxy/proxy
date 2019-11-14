@@ -15,7 +15,7 @@ public class InstanceServiceGrpcImpl extends InstanceServiceGrpc.InstanceService
 
     static {
         dbUrl1 = DbConfig.getConfig().getString("mysql.server1");
-        dbUrl2 = DbConfig.getConfig().getString("mysql.server1");
+        dbUrl2 = DbConfig.getConfig().getString("mysql.server2");
     }
 
     @Override

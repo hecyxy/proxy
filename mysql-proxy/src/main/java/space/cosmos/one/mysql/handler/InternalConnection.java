@@ -98,7 +98,7 @@ public class InternalConnection {
 
                 try {
                     channelFuture = serverBootstrap.bind(config.getFrontend().getPort()).sync();
-                    logger.info(String.format("success bind on port: %s", config.getFrontend().getPort()));
+                    logger.info(String.format("%s success bind on port: %s for backend", config.getFrontend().getPort(),config.getBackend().getHostName()));
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
