@@ -5,6 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import space.cosmos.one.mysql.codec.HandshakeParser;
 
+import java.util.LinkedList;
+
 public class CmdInfo {
     private static final Logger logger = LoggerFactory.getLogger(CmdInfo.class);
 
@@ -24,7 +26,13 @@ public class CmdInfo {
     //给用户的回复
     private ByteBuf response;
 
+    private LinkedList<ByteBuf> producerQueue = new LinkedList<>();
+
     private String remoteAddress;
+
+    public LinkedList<ByteBuf> getProducerQueue() {
+        return producerQueue;
+    }
 
     public String getRemoteAddress() {
         return remoteAddress;
@@ -77,4 +85,15 @@ public class CmdInfo {
         }
     }
 
+    public void parseResponse(ByteBuf buf){}
+
+
+    public void parse(){
+        if(state == State.CONNECTION){
+            HandshakeParser parser = new HandshakeParser(producerQueue.poll());
+            parser.decode();
+        }else{
+            parseRequest(producerQueue.poll());
+        }
+    }
 }

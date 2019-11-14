@@ -19,7 +19,6 @@ public class FrontedHandler extends ChannelInboundHandlerAdapter {
     private Channel proxy2Server;
 
     private CmdInfo cmdInfo = new CmdInfo();
-
     FrontedHandler(ConnectionConfig config) {
         this.config = config;
         //record
@@ -28,11 +27,11 @@ public class FrontedHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         try {
-            cmdInfo.setResponse(((ByteBuf) msg).copy());
-            config.getMpsc().add(cmdInfo);
+            cmdInfo.getProducerQueue().add(((ByteBuf) msg).copy());
         } catch (Throwable t) {
             logger.warn("front add byte buf error", t.getCause());
         }
+        System.out.println("address "+ctx.channel().remoteAddress());
         logger.info("front receive msg");
         proxy2Server.writeAndFlush(msg).addListener((ChannelFutureListener) future -> {
             if (future.isSuccess()) {

@@ -24,9 +24,13 @@ public class HandshakeParser extends MysqlParser<CsGreeting> {
     }
 
     public CsGreeting decode() {
+        packet.readUnsignedMediumLE();
+        packet.readUnsignedByte();
+        packet.readerIndex();
         String pluginName = "";
         ByteBuf seed = null;
         ByteBuf buffer = null;
+        System.out.println(String.format("readable length: %s", packet.readableBytes()));
         int serverCapabilities;
         try {
             buffer = allocator.heapBuffer(20);

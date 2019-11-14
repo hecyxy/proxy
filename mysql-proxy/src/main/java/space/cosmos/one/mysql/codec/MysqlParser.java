@@ -1,7 +1,6 @@
 package space.cosmos.one.mysql.codec;
 
 import io.netty.buffer.ByteBuf;
-import space.cosmos.one.mysql.constant.RemotingType;
 
 public abstract class MysqlParser<T> {
     protected ByteBuf packet;

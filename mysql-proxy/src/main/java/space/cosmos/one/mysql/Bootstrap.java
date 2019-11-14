@@ -87,7 +87,7 @@ public class Bootstrap extends Thread {
     @Override
     public void run() {
         executor.execute(() -> recorder.start());
-        scheduler.scheduleAtFixedRate(this::poll, 0, 5, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(this::poll, 0, 1000, TimeUnit.MILLISECONDS);
         while (latch.getCount() > 0) {
             if (!connected.get()) {
                 instanceObserver = newObserver();
@@ -103,8 +103,9 @@ public class Bootstrap extends Thread {
 
     private void poll() {
         CmdInfo cmdInfo = mpsc.poll();
+        System.out.println(cmdInfo == null);
         while (cmdInfo != null) {
-            cmdInfo.parseRequest(cmdInfo.getResponse());
+            cmdInfo.parse();
 //            if(cmdInfo.getRequest()!=null && ReferenceCountUtil.refCnt(cmdInfo.getRequest())>0){
 //                ReferenceCountUtil.release(cmdInfo.getRequest());
 //            }

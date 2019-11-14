@@ -25,9 +25,9 @@ public class BackendHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        logger.info("backend receive msg");
+        logger.info("backend receive msg,{}", ((ByteBuf) msg).readableBytes());
         try {
-            cmdInfo.setRequest(((ByteBuf) msg).copy());
+            cmdInfo.getProducerQueue().add(((ByteBuf) msg).copy());
         } catch (Throwable t) {
             logger.warn("backend writer buffer error", t.getCause());
         }
