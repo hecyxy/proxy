@@ -3,7 +3,6 @@ package space.cosmos.one.mysql.handler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
-import io.netty.channel.pool.FixedChannelPool;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.logging.LoggingHandler;
 import org.slf4j.Logger;
@@ -12,6 +11,8 @@ import space.cosmos.one.mysql.util.CmdInfo;
 
 import java.net.InetSocketAddress;
 
+import static space.cosmos.one.mysql.util.BufferUtils.isReadable;
+
 public class FrontedHandler extends ChannelInboundHandlerAdapter {
     private static final Logger logger = LoggerFactory.getLogger(FrontedHandler.class);
     private ConnectionConfig config;
@@ -19,6 +20,7 @@ public class FrontedHandler extends ChannelInboundHandlerAdapter {
     private Channel proxy2Server;
 
     private CmdInfo cmdInfo = new CmdInfo();
+
     FrontedHandler(ConnectionConfig config) {
         this.config = config;
         //record
@@ -26,12 +28,14 @@ public class FrontedHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
+//        while (isReadable((ByteBuf) msg)) {
         try {
-            cmdInfo.getProducerQueue().add(((ByteBuf) msg).copy());
+            config.getMap().get(ctx.channel()).getProducerQueue().add(((ByteBuf) msg).copy());
         } catch (Throwable t) {
             logger.warn("front add byte buf error", t.getCause());
         }
-        System.out.println("address "+ctx.channel().remoteAddress());
+
+        logger.info("address " + ctx.channel().remoteAddress());
         logger.info("front receive msg");
         proxy2Server.writeAndFlush(msg).addListener((ChannelFutureListener) future -> {
             if (future.isSuccess()) {
@@ -41,11 +45,15 @@ public class FrontedHandler extends ChannelInboundHandlerAdapter {
                 ctx.channel().close();
             }
         });
+//            return;
+//        }
+
     }
 
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
         super.channelRegistered(ctx);
+        config.getMap().putIfAbsent(ctx.channel(), cmdInfo);
         InetSocketAddress userAddress = (InetSocketAddress) ctx.channel().remoteAddress();
         String host = userAddress.getHostString();
         cmdInfo.setRemoteAddress(host);
@@ -81,6 +89,7 @@ public class FrontedHandler extends ChannelInboundHandlerAdapter {
         if (proxy2Server != null) {
             proxy2Server.close();
         }
+//        config.getMap().remove(ctx.channel());
         logger.info(String.format("user close connection %s", ctx.channel().remoteAddress()));
     }
 
@@ -88,4 +97,5 @@ public class FrontedHandler extends ChannelInboundHandlerAdapter {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         super.exceptionCaught(ctx, cause);
     }
+
 }

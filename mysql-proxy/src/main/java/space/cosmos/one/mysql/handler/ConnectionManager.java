@@ -1,6 +1,8 @@
 package space.cosmos.one.mysql.handler;
 
+import io.netty.channel.Channel;
 import space.cosmos.one.mysql.threadpool.cached.CachedThreadPool;
+import space.cosmos.one.mysql.util.CmdInfo;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,6 +18,9 @@ public class ConnectionManager {
             long key = config.getId();
             if (!connMap.containsKey(key)) {
                 connMap.put(key, new InternalConnection(config));
+                ConcurrentHashMap<Channel,CmdInfo> instanceMap = new ConcurrentHashMap<>();
+                config.setMap(instanceMap);
+                config.getList().add(instanceMap);
             }
             InternalConnection conn = connMap.get(config.getId());
             if (!conn.isStart()) {

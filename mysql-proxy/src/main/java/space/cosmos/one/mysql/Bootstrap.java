@@ -2,12 +2,9 @@ package space.cosmos.one.mysql;
 
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
-import io.netty.buffer.ByteBuf;
-import io.netty.util.ReferenceCountUtil;
-import org.jctools.queues.MpscChunkedArrayQueue;
+import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import space.cosmos.one.mysql.codec.MysqlParser;
 import space.cosmos.one.mysql.gprc.ChannelCreator;
 import space.cosmos.one.mysql.gprc.InternalChannelOption;
 import space.cosmos.one.mysql.gprc.remoting.CmdRecorderService;
@@ -21,6 +18,7 @@ import space.cosmos.one.proxy.mysql.ListInstance;
 import space.cosmos.one.proxy.mysql.RecordServiceGrpc;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -37,14 +35,16 @@ public class Bootstrap extends Thread {
 
     private ManagedChannel channel = ChannelCreator.singleChannel(option);
     private ConnectionManager manager;
-    private MpscChunkedArrayQueue<CmdInfo> mpsc;
+    private ArrayList<ConcurrentHashMap<Channel, CmdInfo>> instanceList;
     private ScheduledExecutorService scheduler;
+
+    private Executor timePool = new CachedThreadPool().getExecutor("timer-thread");
 
     private Bootstrap() {
         instanceStub = InstanceServiceGrpc.newStub(channel);
         recorder = new CmdRecorderService(RecordServiceGrpc.newStub(channel));
         manager = new ConnectionManager();
-        this.mpsc = new MpscChunkedArrayQueue<>(2048);
+        this.instanceList = new ArrayList<>(2048);
         scheduler = Executors.newSingleThreadScheduledExecutor();
     }
 
@@ -57,7 +57,7 @@ public class Bootstrap extends Thread {
                     logger.info(String.format("[instance msg] id: %s; host:%s port:%s", instance.getId(), instance.getHost(), instance.getPort()));
                     InetSocketAddress front = new InetSocketAddress((int) instance.getId() + 1024);
                     InetSocketAddress backend = new InetSocketAddress(instance.getHost(), instance.getPort());
-                    ConnectionConfig config = new ConnectionConfig(instance.getId(), front, backend, mpsc);
+                    ConnectionConfig config = new ConnectionConfig(instance.getId(), front, backend, instanceList);
                     manager.replaceOrAdd(config);
                 });
             }
@@ -81,13 +81,13 @@ public class Bootstrap extends Thread {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> boot.shutdown()));
+        Runtime.getRuntime().addShutdownHook(new Thread(boot::shutdown));
     }
 
     @Override
     public void run() {
         executor.execute(() -> recorder.start());
-        scheduler.scheduleAtFixedRate(this::poll, 0, 1000, TimeUnit.MILLISECONDS);
+        scheduler.scheduleAtFixedRate(this::poll, 0, 5, TimeUnit.SECONDS);
         while (latch.getCount() > 0) {
             if (!connected.get()) {
                 instanceObserver = newObserver();
@@ -102,20 +102,20 @@ public class Bootstrap extends Thread {
     }
 
     private void poll() {
-        CmdInfo cmdInfo = mpsc.poll();
-        System.out.println(cmdInfo == null);
-        while (cmdInfo != null) {
-            cmdInfo.parse();
-//            if(cmdInfo.getRequest()!=null && ReferenceCountUtil.refCnt(cmdInfo.getRequest())>0){
-//                ReferenceCountUtil.release(cmdInfo.getRequest());
-//            }
-//
-//            if(cmdInfo.getResponse()!=null && ReferenceCountUtil.refCnt(cmdInfo.getResponse())>0){
-//                ReferenceCountUtil.release(cmdInfo.getResponse());
-//            }
+        logger.info("list size {}", instanceList.size());
+        instanceList.forEach(map -> {
+            logger.info("map size {}", map.size());
+            map.forEachEntry(2, entry -> {
+                logger.info("running...");
+                CmdInfo cmdInfo = entry.getValue();
+                if (!cmdInfo.getStarted()) {
+                    timePool.execute(cmdInfo);
+                    cmdInfo.setStarted(true);
+                    logger.info(String.format("remote addr %s,start: %s", entry.getValue().getRemoteAddress(), cmdInfo.getStarted()));
+                }
+            });
+        });
 
-            cmdInfo = mpsc.poll();
-        }
 
     }
 
@@ -125,5 +125,6 @@ public class Bootstrap extends Thread {
         latch.countDown();
         recorder.shutdown();
         scheduler.shutdown();
+        instanceList.clear();
     }
 }

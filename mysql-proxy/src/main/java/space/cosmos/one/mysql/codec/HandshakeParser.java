@@ -23,14 +23,11 @@ public class HandshakeParser extends MysqlParser<CsGreeting> {
         super(in);
     }
 
-    public CsGreeting decode() {
-        packet.readUnsignedMediumLE();
-        packet.readUnsignedByte();
-        packet.readerIndex();
+    public CsGreeting decodeBody0() {
         String pluginName = "";
         ByteBuf seed = null;
         ByteBuf buffer = null;
-        System.out.println(String.format("readable length: %s", packet.readableBytes()));
+        logger.info(String.format("readable length: %s", packet.readableBytes()));
         int serverCapabilities;
         try {
             buffer = allocator.heapBuffer(20);
@@ -39,7 +36,7 @@ public class HandshakeParser extends MysqlParser<CsGreeting> {
             BufferUtils.readNullString(packet, buffer);
 
             int threadId = packet.readIntLE();
-            logger.debug("mysql server version is {},threadId: {}", buffer.toString(Charset.forName("ASCII")), threadId);
+
             if (protoVersion > 9) {
                 packet.readBytes(seed, 8);
                 packet.skipBytes(1);
@@ -47,8 +44,7 @@ public class HandshakeParser extends MysqlParser<CsGreeting> {
                 BufferUtils.readNullString(packet, seed);
             }
             serverCapabilities = packet.readUnsignedShortLE();//低两位
-
-            System.out.println("capablilities " + serverCapabilities);
+            logger.info("mysql server version is {},threadId: {},server capability: {}", buffer.toString(Charset.forName("ASCII")), threadId, serverCapabilities);
             if (packet.isReadable()) {//如果还有可读数据
                 int serverCharsetIndex = packet.readUnsignedByte();
                 int serverStatus = packet.readUnsignedShortLE();
