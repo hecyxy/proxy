@@ -93,7 +93,7 @@ public class InternalConnection {
                         .childHandler(new ChannelInitializer<SocketChannel>() {
                             @Override
                             public void initChannel(SocketChannel ch) {
-//                                ch.pipeline().addLast("logging", new LoggingHandler());
+                                ch.pipeline().addLast("front logging", new LoggingHandler());
                                 ch.pipeline().addLast(new MysqlDecoder());
                                 ch.pipeline().addLast("front handler",new FrontedHandler(config));
                             }

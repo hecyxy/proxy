@@ -4,13 +4,17 @@ import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import space.cosmos.one.mysql.codec.CommandParser;
+import space.cosmos.one.mysql.codec.ErrorParser;
 import space.cosmos.one.mysql.codec.HandshakeParser;
+import space.cosmos.one.mysql.codec.OkParser;
 import space.cosmos.one.mysql.codec.message.Command;
 
 import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static space.cosmos.one.mysql.util.CmdInfo.State.SERVER_RESPONSE;
+import static space.cosmos.one.mysql.codec.message.PacketHeader.*;
+import static space.cosmos.one.mysql.util.CmdInfo.State.*;
 
 public class CmdInfo implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(CmdInfo.class);
@@ -45,11 +49,11 @@ public class CmdInfo implements Runnable {
     //给用户的回复
     private ByteBuf response;
 
-    private LinkedList<ByteBuf> producerQueue = new LinkedList<>();
+    private LinkedList<Pair<ByteStream, ByteBuf>> producerQueue = new LinkedList<>();
 
     private String remoteAddress;
 
-    public LinkedList<ByteBuf> getProducerQueue() {
+    public LinkedList<Pair<ByteStream, ByteBuf>> getProducerQueue() {
         return producerQueue;
     }
 
@@ -108,60 +112,146 @@ public class CmdInfo implements Runnable {
     }
 
 
-    public void parse(ByteBuf buf) {
-        switch (state) {
-            case CONNECTION:
-                HandshakeParser handshakeParser = new HandshakeParser(buf);
-                if (!handshakeParser.decode()) {
-                    return;
-                }
-                logger.info("parse result {}", handshakeParser.getBody().toString());
-                state = State.CLIENT_SENDAUTH;
-                break;
-            case CLIENT_SENDAUTH:
-                logger.info("client send auth");
-                buf.clear();
-                state = State.SERVER_AUTH;
-                break;
-            case SERVER_AUTH:
-                buf.clear();
-                state = State.COMMAND;
-                break;
-            case COMMAND:
-                CommandParser cp = new CommandParser(buf);
-                if (!cp.decode()) {
-                    return;
-                }
-                logger.info("use execute sql {}",cp.getBody());
+    public void parse(Pair<ByteStream, ByteBuf> pair) {
+        ByteStream stream = pair.getObject1();
+        ByteBuf buf = pair.getObject2();
+        if (stream == ByteStream.REQUEST) {
+            if (state != CONNECTION) {
+                state = COMMAND;
+            }
+            switch (state) {
+                case CONNECTION:
+                    HandshakeParser handshakeParser = new HandshakeParser(buf);
+                    if (!handshakeParser.decode()) {
+                        return;
+                    }
+                    logger.info("parse result {}", handshakeParser.getBody().toString());
+                    state = State.CLIENT_SENDAUTH;
+                    break;
+                case COMMAND:
+                    CommandParser cp = new CommandParser(buf);
+                    if (!cp.decode()) {
+                        return;
+                    }
+                    logger.info("use execute sql {}", cp.getBody());
+                    state = SERVER_RESPONSE;
+                    break;
+                default:
+                    logger.info("request default...");
+            }
+        } else {
+            if (state == COMMAND) {
                 state = SERVER_RESPONSE;
+            }
+            switch (state) {
+                case CONNECTION:
+                    HandshakeParser handshakeParser = new HandshakeParser(buf);
+                    if (!handshakeParser.decode()) {
+                        return;
+                    }
+                    logger.info("parse result {}", handshakeParser.getBody().toString());
+                    state = State.CLIENT_SENDAUTH;
+                    break;
+                case SERVER_AUTH:
+                    logger.info("auth response {}", buf.readableBytes());
+                    state = State.COMMAND;
+                    break;
+                case SERVER_RESPONSE:
+//                    decodeResponse(buf);
+                    logger.info("response ignore...");
+                    state = State.COMMAND;
+                    break;
+                default:
+                    logger.info("default....");
+            }
+        }
+//        switch (state) {
+//            case CONNECTION:
+//                HandshakeParser handshakeParser = new HandshakeParser(buf);
+//                if (!handshakeParser.decode()) {
+//                    return;
+//                }
+//                logger.info("parse result {}", handshakeParser.getBody().toString());
+//                state = State.CLIENT_SENDAUTH;
+//                break;
+//            case CLIENT_SENDAUTH:
+//                logger.info("client send auth size {}", buf.readableBytes());
+//                buf.clear();
+//                state = State.SERVER_AUTH;
+//                break;
+//            case SERVER_AUTH:
+//                logger.info("auth response {}", buf.readableBytes());
+//                state = State.COMMAND;
+//                break;
+//            case COMMAND:
+//                CommandParser cp = new CommandParser(buf);
+//                if (!cp.decode()) {
+//                    return;
+//                }
+//                logger.info("use execute sql {}", cp.getBody());
+//                state = SERVER_RESPONSE;
+//                break;
+//            case SERVER_RESPONSE:
+//                decodeResponse(buf);
+//                state = State.COMMAND;
+//                break;
+//            default:
+//                break;
+//        }
+    }
+
+    private void decodeResponse(ByteBuf in) {
+        short packetType = in.getUnsignedByte(in.readerIndex() + 4);
+        switch (packetType) {
+            case PACKET_OK:
+                OkParser ok = new OkParser(in);
+                if (ok.decode()) {
+                    logger.info("ok msg {}", ok.getBody());
+                }
                 break;
-            case SERVER_RESPONSE:
-                logger.info("ignore the server response");
-                state = State.COMMAND;
+            case PACKET_ERR:
+                ErrorParser err = new ErrorParser(in);
+                if (err.decode()) {
+                    logger.info("ok msg {}", err.getBody());
+                }
                 break;
             default:
-                break;
+                decodeResultSet(in);
         }
+    }
+
+    private boolean decodeResultSet(ByteBuf in) {
+        int packetLen = in.readUnsignedMediumLE();
+        int packetNo = in.readUnsignedByte();
+
+        int expectedFieldPackets = (int) BufferUtils.readEncodedLenInt(in);
+        int remainingFieldPackets = expectedFieldPackets;
+        state = State.FIELD;
+        logger.info("result set {} {}", expectedFieldPackets, remainingFieldPackets);
+        //out.add(new ResultSetResponse(packetLen, packetNo, this.expectedFieldPackets));
+        return true;
     }
 
     @Override
     public void run() {
-        System.out.println("before buf size " + producerQueue.size());
-        ByteBuf buf = producerQueue.poll();
-        while (buf != null) {
-            try {
-                System.out.println("buf size " + producerQueue.size());
-                parse(buf);
-            } catch (Exception e) {
-                logger.error("exception ", e);
-            } finally {
-                buf = producerQueue.poll();
+        while (true) {
+            System.out.println("before buf size " + producerQueue.size());
+            Pair<ByteStream, ByteBuf> buf = producerQueue.poll();
+            while (buf != null) {
+                try {
+                    System.out.println("buf size " + producerQueue.size());
+                    parse(buf);
+                } catch (Exception e) {
+                    logger.error("exception ", e);
+                } finally {
+                    buf = producerQueue.poll();
+                }
             }
-        }
-        try {
-            Thread.sleep(800);
-        } catch (InterruptedException e) {
-            logger.error("thread sleep error", e);
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                logger.error("thread sleep error", e);
+            }
         }
 
     }

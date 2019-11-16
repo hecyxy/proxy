@@ -7,7 +7,9 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.logging.LoggingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import space.cosmos.one.mysql.util.ByteStream;
 import space.cosmos.one.mysql.util.CmdInfo;
+import space.cosmos.one.mysql.util.Pair;
 
 import java.net.InetSocketAddress;
 
@@ -30,7 +32,7 @@ public class FrontedHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
 //        while (isReadable((ByteBuf) msg)) {
         try {
-            config.getMap().get(ctx.channel()).getProducerQueue().add(((ByteBuf) msg).copy());
+            config.getMap().get(ctx.channel()).getProducerQueue().add(new Pair(ByteStream.REQUEST, ((ByteBuf) msg).copy()));
         } catch (Throwable t) {
             logger.warn("front add byte buf error", t.getCause());
         }
@@ -64,7 +66,8 @@ public class FrontedHandler extends ChannelInboundHandlerAdapter {
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) {
-                        ch.pipeline().addLast("backend logging", new LoggingHandler());
+//                        ch.pipeline().addLast("backend logging", new LoggingHandler());
+                        ch.pipeline().addLast("decoder", new MysqlDecoder());
                         ch.pipeline().addLast("backend handler", new BackendHandler(ctx.channel(), cmdInfo));
                     }
                 });

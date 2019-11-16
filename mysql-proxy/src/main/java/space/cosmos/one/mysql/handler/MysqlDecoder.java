@@ -33,10 +33,10 @@ import static space.cosmos.one.mysql.util.BufferUtils.isReadable;
 //}
 
 public class MysqlDecoder extends LengthFieldBasedFrameDecoder {
-    private static final int MAX_PACKET_LENGTH = 8192 * 2;
+    private static final int MAX_PACKET_LENGTH = 8192;
 
     public MysqlDecoder() {
-        super(ByteOrder.LITTLE_ENDIAN, MAX_PACKET_LENGTH, 0, 3, 1, 0);
+        super(ByteOrder.LITTLE_ENDIAN, MAX_PACKET_LENGTH, 0, 3, 1, 0, true);
     }
 
     @Override

@@ -6,7 +6,9 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import space.cosmos.one.mysql.util.ByteStream;
 import space.cosmos.one.mysql.util.CmdInfo;
+import space.cosmos.one.mysql.util.Pair;
 
 import static space.cosmos.one.mysql.util.BufferUtils.isReadable;
 
@@ -26,7 +28,7 @@ public class BackendHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         logger.info("backend receive msg,{}", ((ByteBuf) msg).readableBytes());
         try {
-            cmdInfo.getProducerQueue().add(((ByteBuf) msg).copy());
+            cmdInfo.getProducerQueue().add(new Pair(ByteStream.RESPONSE, ((ByteBuf) msg).copy()));
         } catch (Throwable t) {
             logger.warn("backend writer buffer error", t.getCause());
         }
