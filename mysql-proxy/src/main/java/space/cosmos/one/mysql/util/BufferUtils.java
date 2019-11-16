@@ -34,36 +34,55 @@ public final class BufferUtils {
         }
         return true;
     }
+
     public static long readEncodedLenInt(ByteBuf buffer) {
         int firstByte = buffer.readUnsignedByte();
-        return readEncodedLenInt(buffer,firstByte);
+        return readEncodedLenInt(buffer, firstByte);
     }
 
-    public static long readEncodedLenInt(ByteBuf buffer,int firstByte) {
-        if(firstByte < 251) {
+    public static long readEncodedLenInt(ByteBuf buffer, int firstByte) {
+        if (firstByte < 251) {
             return firstByte;
-        }else if( firstByte == 0xfc) {
+        } else if (firstByte == 0xfc) {
             return buffer.readUnsignedShortLE(); //2个字节
-        }else if(firstByte == 0xfd) {
+        } else if (firstByte == 0xfd) {
             return buffer.readUnsignedMediumLE();//3个字节
-        }else if(firstByte == 0xfe) {
+        } else if (firstByte == 0xfe) {
             return buffer.readLongLE();
         }
         return -1;
     }
-    public static String readString(ByteBuf in,int len) {
+
+    public static String readString(ByteBuf in, int len) {
         byte[] data = new byte[len];
         in.readBytes(data);
         return toString(data);
     }
+
     public static String toString(byte[] b) {
-        return toString(b,"UTF-8");
+        return toString(b, "UTF-8");
     }
-    public static String toString(byte[] b,String encoding) {
+
+    public static String toString(byte[] b, String encoding) {
         try {
-            return new String(b,encoding);
+            return new String(b, encoding);
         } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException("not support"+encoding);
+            throw new RuntimeException("not support" + encoding);
         }
+    }
+
+    public static String readEncodedLenString(ByteBuf buf) {
+        int len = (int) readEncodedLenInt(buf);
+        byte[] data = new byte[len];
+        buf.readBytes(data);
+        try {
+            return new String(data, "utf-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("not support utf8");
+        }
+    }
+    public static boolean isEOFPacket(ByteBuf in) {
+        int len = in.getUnsignedMediumLE(in.readerIndex());
+        return (len <= 5) && (in.getUnsignedByte(in.readerIndex()+4) == 0xFE);
     }
 }

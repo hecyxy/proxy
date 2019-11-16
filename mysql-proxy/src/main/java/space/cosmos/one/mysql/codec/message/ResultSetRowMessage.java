@@ -1,0 +1,15 @@
+package space.cosmos.one.mysql.codec.message;
+
+public class ResultSetRowMessage extends ServerMessage {
+    private final String[] row;
+
+    public ResultSetRowMessage(int packetLength, int packetNumber, String[] row) {
+        super(packetLength, packetNumber);
+        this.row = row;
+    }
+
+    public String[] getRow() {
+        return row;
+    }
+
+}

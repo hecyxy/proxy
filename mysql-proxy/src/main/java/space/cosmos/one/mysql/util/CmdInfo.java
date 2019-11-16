@@ -3,11 +3,9 @@ package space.cosmos.one.mysql.util;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import space.cosmos.one.mysql.codec.CommandParser;
-import space.cosmos.one.mysql.codec.ErrorParser;
-import space.cosmos.one.mysql.codec.HandshakeParser;
-import space.cosmos.one.mysql.codec.OkParser;
+import space.cosmos.one.mysql.codec.*;
 import space.cosmos.one.mysql.codec.message.Command;
+import space.cosmos.one.mysql.codec.message.EofMessage;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -48,6 +46,8 @@ public class CmdInfo implements Runnable {
     private ByteBuf request;
     //给用户的回复
     private ByteBuf response;
+
+    private int expectedFieldPackets = 0, remainingFieldPackets = 0;
 
     private LinkedList<Pair<ByteStream, ByteBuf>> producerQueue = new LinkedList<>();
 
@@ -157,10 +157,46 @@ public class CmdInfo implements Runnable {
                     state = State.COMMAND;
                     break;
                 case SERVER_RESPONSE:
-//                    decodeResponse(buf);
-                    logger.info("response ignore...");
-                    state = State.COMMAND;
+                    logger.info("response ignore..., buf size {}", buf.readableBytes());
+//                    state = State.COMMAND;
+                    if (!decodeResponse(buf)) {
+                        return;
+                    }
                     break;
+                case FIELD:
+                    FieldParser packet = new FieldParser(buf, 0);
+                    packet.decode();
+                    logger.info("field info {}", packet.getBody());
+
+                    this.remainingFieldPackets--;
+                    if (this.remainingFieldPackets == 0) {
+                        this.state = State.FIELD_EOF;
+                    }
+                    return;
+                case FIELD_EOF:
+                    EofParser fieldPacket = new EofParser(buf, EofMessage.Type.FIELD);
+                    if (!fieldPacket.decode()) {
+                        return;
+                    }
+                    logger.info("field eof {}", fieldPacket.getBody());
+                    this.state = State.ROW;
+                    return;
+                case ROW:
+                    if (BufferUtils.isEOFPacket(buf)) {
+                        EofParser rowPacket = new EofParser(buf, EofMessage.Type.ROW);
+                        if (!rowPacket.decode()) {
+                            return;
+                        }
+                        this.state = State.RESPONSE;
+                        this.expectedFieldPackets = 0;
+                        return;
+                    }
+                    RowParser rowParser = new RowParser(buf, this.expectedFieldPackets);
+                    if (!rowParser.decode()) {
+                        return;
+                    }
+                    logger.info("row info {}", rowParser.getBody());
+                    return;
                 default:
                     logger.info("default....");
             }
@@ -200,32 +236,37 @@ public class CmdInfo implements Runnable {
 //        }
     }
 
-    private void decodeResponse(ByteBuf in) {
-        short packetType = in.getUnsignedByte(in.readerIndex() + 4);
+    private boolean decodeResponse(ByteBuf in) {
+        int start = in.readerIndex() + 4;
+        short packetType = in.getUnsignedByte(start);
+        logger.info("start: {},packet type: {}", start, packetType);
         switch (packetType) {
             case PACKET_OK:
                 OkParser ok = new OkParser(in);
                 if (ok.decode()) {
                     logger.info("ok msg {}", ok.getBody());
+                    return true;
                 }
                 break;
             case PACKET_ERR:
                 ErrorParser err = new ErrorParser(in);
                 if (err.decode()) {
                     logger.info("ok msg {}", err.getBody());
+                    return true;
                 }
                 break;
             default:
-                decodeResultSet(in);
+                return decodeResultSet(in);
         }
+        return false;
     }
 
     private boolean decodeResultSet(ByteBuf in) {
         int packetLen = in.readUnsignedMediumLE();
         int packetNo = in.readUnsignedByte();
 
-        int expectedFieldPackets = (int) BufferUtils.readEncodedLenInt(in);
-        int remainingFieldPackets = expectedFieldPackets;
+        this.expectedFieldPackets = (int) BufferUtils.readEncodedLenInt(in);
+        this.remainingFieldPackets = this.expectedFieldPackets;
         state = State.FIELD;
         logger.info("result set {} {}", expectedFieldPackets, remainingFieldPackets);
         //out.add(new ResultSetResponse(packetLen, packetNo, this.expectedFieldPackets));
@@ -239,7 +280,7 @@ public class CmdInfo implements Runnable {
             Pair<ByteStream, ByteBuf> buf = producerQueue.poll();
             while (buf != null) {
                 try {
-                    System.out.println("buf size " + producerQueue.size());
+                    System.out.println("queue size " + producerQueue.size());
                     parse(buf);
                 } catch (Exception e) {
                     logger.error("exception ", e);
