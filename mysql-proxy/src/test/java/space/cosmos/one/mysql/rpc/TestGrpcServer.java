@@ -24,7 +24,7 @@ class CommunicateServiceGrpcImpl extends CommunicateServiceGrpc.CommunicateServi
             @Override
             public void onNext(Info value) {
                 System.err.println("stream client receive " + value.getMsg());
-                responseObserver.onNext(Info.newBuilder().setMsg("stream client end").setFlag("sc").build());
+//                responseObserver.onNext(Info.newBuilder().setMsg("stream client end").setFlag("sc").build());
             }
 
             @Override
@@ -35,6 +35,7 @@ class CommunicateServiceGrpcImpl extends CommunicateServiceGrpc.CommunicateServi
             @Override
             public void onCompleted() {
                 responseObserver.onNext(Info.newBuilder().setMsg("stream client end").setFlag("sc").build());
+                responseObserver.onCompleted();
             }
         };
     }

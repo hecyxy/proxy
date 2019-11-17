@@ -1,6 +1,8 @@
 package space.cosmos.one.mysql.server.endpoint;
 
 import io.grpc.stub.StreamObserver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import space.cosmos.one.mysql.server.config.DbConfig;
 import space.cosmos.one.proxy.mysql.InstanceServiceGrpc;
 import space.cosmos.one.proxy.mysql.ListInstance;
@@ -12,6 +14,8 @@ public class InstanceServiceGrpcImpl extends InstanceServiceGrpc.InstanceService
 
     private static String dbUrl1;
     private static String dbUrl2;
+
+    private static final Logger logger = LoggerFactory.getLogger(InstanceServiceGrpcImpl.class);
 
     static {
         dbUrl1 = DbConfig.getConfig().getString("mysql.server1");
@@ -30,7 +34,8 @@ public class InstanceServiceGrpcImpl extends InstanceServiceGrpc.InstanceService
 
             @Override
             public void onNext(ListInstance.Request value) {
-                responseObserver.onNext(ListInstance.Response.newBuilder().addAllInstance(list).build());
+                logger.info("receive msg {}",value);
+//                responseObserver.onNext(ListInstance.Response.newBuilder().addAllInstance(list).build());
             }
 
             @Override
@@ -40,7 +45,8 @@ public class InstanceServiceGrpcImpl extends InstanceServiceGrpc.InstanceService
 
             @Override
             public void onCompleted() {
-
+                responseObserver.onNext(ListInstance.Response.newBuilder().addAllInstance(list).build());
+                responseObserver.onCompleted();
             }
         };
     }

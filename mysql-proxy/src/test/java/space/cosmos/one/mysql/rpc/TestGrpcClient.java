@@ -46,8 +46,9 @@ public class TestGrpcClient extends TestGrpcBase {
 
             }
         });
-        Stream.of("1", "2", "3").map(e -> Info.newBuilder().setMsg(String.valueOf(e)).setFlag("stream client").build())
+        Stream.of("1", "2", "3").map(e -> Info.newBuilder().setMsg(e).setFlag("stream client").build())
                 .forEach(request::onNext);
+        request.onCompleted();
         try {
             Thread.sleep(3 * 1000);
         } catch (InterruptedException e) {

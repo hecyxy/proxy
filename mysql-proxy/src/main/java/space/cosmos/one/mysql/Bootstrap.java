@@ -93,6 +93,7 @@ public class Bootstrap extends Thread {
                 instanceObserver = newObserver();
             }
             instanceObserver.onNext(ListInstance.Request.getDefaultInstance());
+            instanceObserver.onCompleted();
             try {
                 latch.await(60, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
