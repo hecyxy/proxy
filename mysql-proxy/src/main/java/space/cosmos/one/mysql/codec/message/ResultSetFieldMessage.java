@@ -11,4 +11,9 @@ public class ResultSetFieldMessage extends ServerMessage {
     public MysqlField getMysqlField() {
         return mysqlField;
     }
+
+    @Override
+    public String toString() {
+        return String.format("field message :", mysqlField.toString());
+    }
 }

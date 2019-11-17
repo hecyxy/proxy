@@ -14,7 +14,8 @@ public class MysqlField {
     private final String columnName;
     private Set<FieldFlag> flags;
     private int colDecimals;
-    public MysqlField(int index,String catalogName,String schemaName,String tableLabel, String tableName, FieldType columnType, String columnLabel, String columnName, int columnLength, Set<FieldFlag> flags, int colDecimals) {
+
+    public MysqlField(int index, String catalogName, String schemaName, String tableLabel, String tableName, FieldType columnType, String columnLabel, String columnName, int columnLength, Set<FieldFlag> flags, int colDecimals) {
         this.index = index;
         this.catalogName = catalogName;
         this.schemaName = schemaName;
@@ -27,9 +28,11 @@ public class MysqlField {
         this.flags = flags;
         this.colDecimals = colDecimals;
     }
+
     public int getIndex() {
         return index;
     }
+
     public String getCatalogName() {
         return catalogName;
     }
@@ -68,6 +71,16 @@ public class MysqlField {
 
     public int getColDecimals() {
         return colDecimals;
+    }
+
+
+    @Override
+    public String toString() {
+        return "index:" + index + " catalogName: " + catalogName + " schemaName:" + schemaName
+                + " tableLabel:"+tableLabel+" tableName:"+tableName+" columnType:"+columnType
+                +" tableLabel:"+columnLength+" columnLabel:"+columnLabel
+                + "columnName:"+columnName+" flags:"+flags
+                +" colDecimals: "+colDecimals;
     }
 
 }

@@ -31,4 +31,9 @@ public class EofMessage extends ServerMessage {
     public Type getType() {
         return type;
     }
+
+    @Override
+    public String toString() {
+        return String.format("[warnings: %s ],[server status: %s],[type: %s]", warnings, serverStatus, type);
+    }
 }

@@ -12,4 +12,12 @@ public class ResultSetRowMessage extends ServerMessage {
         return row;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        for (String r : row) {
+            builder.append(r + ",");
+        }
+        return builder.toString();
+    }
 }
