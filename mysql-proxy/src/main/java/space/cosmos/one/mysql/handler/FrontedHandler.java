@@ -4,16 +4,13 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.logging.LoggingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import space.cosmos.one.mysql.util.ByteStream;
-import space.cosmos.one.mysql.util.CmdInfo;
+import space.cosmos.one.mysql.util.WrapStream;
 import space.cosmos.one.mysql.util.Pair;
 
 import java.net.InetSocketAddress;
-
-import static space.cosmos.one.mysql.util.BufferUtils.isReadable;
 
 public class FrontedHandler extends ChannelInboundHandlerAdapter {
     private static final Logger logger = LoggerFactory.getLogger(FrontedHandler.class);
@@ -21,7 +18,7 @@ public class FrontedHandler extends ChannelInboundHandlerAdapter {
 
     private Channel proxy2Server;
 
-    private CmdInfo cmdInfo = new CmdInfo();
+    private WrapStream cmdInfo = new WrapStream();
 
     FrontedHandler(ConnectionConfig config) {
         this.config = config;
@@ -41,7 +38,7 @@ public class FrontedHandler extends ChannelInboundHandlerAdapter {
         logger.info("front receive msg");
         proxy2Server.writeAndFlush(msg).addListener((ChannelFutureListener) future -> {
             if (future.isSuccess()) {
-                ctx.channel().read();
+                logger.info("flush success");
             } else {
                 logger.error("write error");
                 ctx.channel().close();
@@ -76,7 +73,6 @@ public class FrontedHandler extends ChannelInboundHandlerAdapter {
         future.addListener((ChannelFutureListener) listener -> {
             if (listener.isSuccess()) {
                 logger.info(String.format("user address %s mysql server %s", ctx.channel().remoteAddress(), config.getBackend()));
-                ctx.channel().read();
             } else {
                 if (ctx.channel().isOpen()) {
                     ctx.channel().close();

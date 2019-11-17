@@ -3,7 +3,7 @@ package space.cosmos.one.mysql.handler;
 import io.netty.channel.Channel;
 import org.jctools.queues.MpscChunkedArrayQueue;
 import space.cosmos.one.mysql.gprc.remoting.Recorder;
-import space.cosmos.one.mysql.util.CmdInfo;
+import space.cosmos.one.mysql.util.WrapStream;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -13,36 +13,36 @@ public class ConnectionConfig {
     private Long id;
     private InetSocketAddress frontend;
 
-    public ArrayList<ConcurrentHashMap<Channel, CmdInfo>> getList() {
+    public ArrayList<ConcurrentHashMap<Channel, WrapStream>> getList() {
         return list;
     }
 
     private InetSocketAddress backend;
     private Recorder recorder;
-    private MpscChunkedArrayQueue<CmdInfo> mpsc;
+    private MpscChunkedArrayQueue<WrapStream> mpsc;
 
-    private CmdInfo cmdInfo;
+    private WrapStream cmdInfo;
 
-    private ArrayList<ConcurrentHashMap<Channel, CmdInfo>> list;
+    private ArrayList<ConcurrentHashMap<Channel, WrapStream>> list;
 
-    public void setMpsc(MpscChunkedArrayQueue<CmdInfo> mpsc) {
+    public void setMpsc(MpscChunkedArrayQueue<WrapStream> mpsc) {
         this.mpsc = mpsc;
     }
 
-    public MpscChunkedArrayQueue<CmdInfo> getMpsc() {
+    public MpscChunkedArrayQueue<WrapStream> getMpsc() {
         return mpsc;
     }
 
-    public ConcurrentHashMap<Channel, CmdInfo> getMap() {
+    public ConcurrentHashMap<Channel, WrapStream> getMap() {
         return map;
     }
 
-    public void setMap(ConcurrentHashMap<Channel, CmdInfo> map) {
+    public void setMap(ConcurrentHashMap<Channel, WrapStream> map) {
         this.map = map;
     }
 
-    private ConcurrentHashMap<Channel,CmdInfo> map;
-    public ConnectionConfig(long id, InetSocketAddress front, InetSocketAddress backend, ArrayList<ConcurrentHashMap<Channel, CmdInfo>> list) {
+    private ConcurrentHashMap<Channel, WrapStream> map;
+    public ConnectionConfig(long id, InetSocketAddress front, InetSocketAddress backend, ArrayList<ConcurrentHashMap<Channel, WrapStream>> list) {
         this.id = id;
         this.frontend = front;
         this.backend = backend;

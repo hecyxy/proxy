@@ -12,7 +12,7 @@ import space.cosmos.one.mysql.gprc.remoting.Recorder;
 import space.cosmos.one.mysql.handler.ConnectionConfig;
 import space.cosmos.one.mysql.handler.ConnectionManager;
 import space.cosmos.one.mysql.threadpool.cached.CachedThreadPool;
-import space.cosmos.one.mysql.util.CmdInfo;
+import space.cosmos.one.mysql.util.WrapStream;
 import space.cosmos.one.proxy.mysql.InstanceServiceGrpc;
 import space.cosmos.one.proxy.mysql.ListInstance;
 import space.cosmos.one.proxy.mysql.RecordServiceGrpc;
@@ -35,7 +35,7 @@ public class Bootstrap extends Thread {
 
     private ManagedChannel channel = ChannelCreator.singleChannel(option);
     private ConnectionManager manager;
-    private ArrayList<ConcurrentHashMap<Channel, CmdInfo>> instanceList;
+    private ArrayList<ConcurrentHashMap<Channel, WrapStream>> instanceList;
     private ScheduledExecutorService scheduler;
 
     private Executor timePool = new CachedThreadPool().getExecutor("timer-thread");
@@ -108,7 +108,7 @@ public class Bootstrap extends Thread {
             logger.info("map size {}", map.size());
             map.forEachEntry(2, entry -> {
                 logger.info("running...");
-                CmdInfo cmdInfo = entry.getValue();
+                WrapStream cmdInfo = entry.getValue();
                 if (!cmdInfo.getStarted()) {
                     timePool.execute(cmdInfo);
                     cmdInfo.setStarted(true);

@@ -1,21 +1,21 @@
 package space.cosmos.one.mysql.util;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import space.cosmos.one.mysql.codec.*;
-import space.cosmos.one.mysql.codec.message.Command;
 import space.cosmos.one.mysql.codec.message.EofMessage;
 
 import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static space.cosmos.one.mysql.codec.message.PacketHeader.*;
-import static space.cosmos.one.mysql.util.CmdInfo.State.*;
+import static space.cosmos.one.mysql.codec.message.PacketHeader.PACKET_ERR;
+import static space.cosmos.one.mysql.codec.message.PacketHeader.PACKET_OK;
+import static space.cosmos.one.mysql.util.WrapStream.State.*;
 
-public class CmdInfo implements Runnable {
-    private static final Logger logger = LoggerFactory.getLogger(CmdInfo.class);
+public class WrapStream implements Runnable {
+    private static final Logger logger = LoggerFactory.getLogger(WrapStream.class);
 
     private AtomicBoolean started = new AtomicBoolean(false);
 
@@ -40,12 +40,6 @@ public class CmdInfo implements Runnable {
     }
 
     private State state = State.CONNECTION;
-    //每个请求用唯一ID标识
-    private long id;
-    //用户请求
-    private ByteBuf request;
-    //给用户的回复
-    private ByteBuf response;
 
     private int expectedFieldPackets = 0, remainingFieldPackets = 0;
 
@@ -63,52 +57,6 @@ public class CmdInfo implements Runnable {
 
     public void setRemoteAddress(String remoteAddress) {
         this.remoteAddress = remoteAddress;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public ByteBuf getRequest() {
-        return request;
-    }
-
-    public void setRequest(ByteBuf request) {
-        this.request = request;
-    }
-
-    public ByteBuf getResponse() {
-        return response;
-    }
-
-    public void setResponse(ByteBuf response) {
-        this.response = response;
-    }
-
-    public void parseRequest(ByteBuf buf) {
-        switch (state) {
-            case CONNECTION:
-                HandshakeParser handshakeParser = new HandshakeParser(buf);
-                logger.info("parser request: {}", handshakeParser.getBody().toString());
-                break;
-            case RESPONSE:
-                break;
-            case FIELD:
-                break;
-            case FIELD_EOF:
-                break;
-            case ROW:
-                break;
-            default:
-                break;
-        }
-    }
-
-    public void parseResponse(ByteBuf buf) {
     }
 
 
@@ -201,39 +149,6 @@ public class CmdInfo implements Runnable {
                     logger.info("default....");
             }
         }
-//        switch (state) {
-//            case CONNECTION:
-//                HandshakeParser handshakeParser = new HandshakeParser(buf);
-//                if (!handshakeParser.decode()) {
-//                    return;
-//                }
-//                logger.info("parse result {}", handshakeParser.getBody().toString());
-//                state = State.CLIENT_SENDAUTH;
-//                break;
-//            case CLIENT_SENDAUTH:
-//                logger.info("client send auth size {}", buf.readableBytes());
-//                buf.clear();
-//                state = State.SERVER_AUTH;
-//                break;
-//            case SERVER_AUTH:
-//                logger.info("auth response {}", buf.readableBytes());
-//                state = State.COMMAND;
-//                break;
-//            case COMMAND:
-//                CommandParser cp = new CommandParser(buf);
-//                if (!cp.decode()) {
-//                    return;
-//                }
-//                logger.info("use execute sql {}", cp.getBody());
-//                state = SERVER_RESPONSE;
-//                break;
-//            case SERVER_RESPONSE:
-//                decodeResponse(buf);
-//                state = State.COMMAND;
-//                break;
-//            default:
-//                break;
-//        }
     }
 
     private boolean decodeResponse(ByteBuf in) {
@@ -282,6 +197,10 @@ public class CmdInfo implements Runnable {
                 try {
                     System.out.println("queue size " + producerQueue.size());
                     parse(buf);
+                    if (ReferenceCountUtil.refCnt(buf) > 0) {
+                        ReferenceCountUtil.release(buf);
+                        logger.info("release buf success...");
+                    }
                 } catch (Exception e) {
                     logger.error("exception ", e);
                 } finally {
@@ -294,7 +213,6 @@ public class CmdInfo implements Runnable {
                 logger.error("thread sleep error", e);
             }
         }
-
     }
 
     public void close() {

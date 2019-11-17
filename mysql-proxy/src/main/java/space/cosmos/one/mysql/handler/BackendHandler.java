@@ -7,19 +7,17 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import space.cosmos.one.mysql.util.ByteStream;
-import space.cosmos.one.mysql.util.CmdInfo;
+import space.cosmos.one.mysql.util.WrapStream;
 import space.cosmos.one.mysql.util.Pair;
-
-import static space.cosmos.one.mysql.util.BufferUtils.isReadable;
 
 public class BackendHandler extends ChannelInboundHandlerAdapter {
 
     private static final Logger logger = LoggerFactory.getLogger(BackendHandler.class);
 
     private Channel user2Proxy;
-    private CmdInfo cmdInfo;
+    private WrapStream cmdInfo;
 
-    public BackendHandler(Channel user2Proxy, CmdInfo cmdInfo) {
+    public BackendHandler(Channel user2Proxy, WrapStream cmdInfo) {
         this.user2Proxy = user2Proxy;
         this.cmdInfo = cmdInfo;
     }

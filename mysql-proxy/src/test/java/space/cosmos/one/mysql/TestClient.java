@@ -5,6 +5,7 @@ import com.google.protobuf.util.JsonFormat;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
+import org.junit.Test;
 import space.cosmos.one.proxy.mysql.InstanceServiceGrpc;
 import space.cosmos.one.proxy.mysql.ListInstance;
 
@@ -47,5 +48,29 @@ public class TestClient {
         });
         streamRequest.onCompleted();
         Thread.sleep(3 * 1000);
+    }
+
+    @Test
+    public void test1() {
+        int a = 10;
+        while (true) {
+            switch (a) {
+                case 1:
+                    System.out.println("aa");
+                    break;
+                case 10:
+                    System.out.println("aa");
+                    break;
+                default:
+                    System.out.println("aa");
+                    break;
+            }
+            try {
+                Thread.sleep(2 * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        }
     }
 }
