@@ -3,4 +3,5 @@ include 'mysql-proxy'
 include 'grpc'
 include 'server'
 include 'binlog-sync'
+include 'common'
 

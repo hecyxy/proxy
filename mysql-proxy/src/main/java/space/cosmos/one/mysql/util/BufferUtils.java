@@ -4,7 +4,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.util.ByteProcessor;
 
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 public final class BufferUtils {
@@ -81,8 +80,9 @@ public final class BufferUtils {
             throw new RuntimeException("not support utf8");
         }
     }
+
     public static boolean isEOFPacket(ByteBuf in) {
         int len = in.getUnsignedMediumLE(in.readerIndex());
-        return (len <= 5) && (in.getUnsignedByte(in.readerIndex()+4) == 0xFE);
+        return (len <= 5) && (in.getUnsignedByte(in.readerIndex() + 4) == 0xFE);
     }
 }

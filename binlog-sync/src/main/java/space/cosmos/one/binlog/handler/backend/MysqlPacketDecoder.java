@@ -1,0 +1,29 @@
+package space.cosmos.one.binlog.handler.backend;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.ByteToMessageDecoder;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.nio.ByteOrder;
+import java.util.List;
+
+import static space.cosmos.one.common.util.BufferUtils.isReadable;
+
+public class MysqlPacketDecoder extends LengthFieldBasedFrameDecoder {
+    private static final Logger logger = LoggerFactory.getLogger(MysqlPacketDecoder.class);
+
+    private static final int maxSize = 16 * 1024 * 1024;
+
+
+    public MysqlPacketDecoder() {
+        super(ByteOrder.LITTLE_ENDIAN, maxSize, 0, 3, 1, 0, true);
+    }
+
+    @Override
+    protected Object decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
+        return super.decode(ctx, in);
+    }
+}

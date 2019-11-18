@@ -3,4 +3,5 @@ apply plugin: 'application'
 mainClassName = "space.cosmos.one.mysql.Bootstrap"
 
 dependencies {
+    compile project(':common')
 }

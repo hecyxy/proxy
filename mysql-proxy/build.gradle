@@ -4,6 +4,7 @@ mainClassName = "space.cosmos.one.mysql.Bootstrap"
 
 dependencies {
     compile project(':grpc')
+    compile project(':common')
     implementation "io.grpc:grpc-netty-shaded:$grpc_version"
     implementation group: 'com.google.protobuf', name: 'protobuf-java-util', version: '3.6.1'
     // https://mvnrepository.com/artifact/org.jctools/jctools-core
