@@ -2,7 +2,7 @@ package space.cosmos.one.mysql.codec.message;
 
 public enum Command {
     /**
-     * Text protocal
+     * Text protocol
      */
     SLEEP(0x00),
     QUIT(0x01),

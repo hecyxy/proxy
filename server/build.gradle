@@ -1,6 +1,6 @@
 apply plugin: 'application'
 
-mainClassName = "space.cosmos.one.mysql.Bootstrap"
+mainClassName = "space.cosmos.one.mysql.Application"
 
 dependencies {
     compile project(':grpc')

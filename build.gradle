@@ -43,6 +43,9 @@ subprojects{
         compile 'ch.qos.logback:logback-classic:1.1.7'
         compile "org.slf4j:slf4j-api:${slf4j_version}"
 
+        //remoting
+        implementation 'io.netty:netty-all:4.1.32.Final'
+
     }
 
     //noinspection GroovyAssignabilityCheck

@@ -214,8 +214,4 @@ public class WrapStream implements Runnable {
             }
         }
     }
-
-    public void close() {
-        //todo 清理部分资源
-    }
 }

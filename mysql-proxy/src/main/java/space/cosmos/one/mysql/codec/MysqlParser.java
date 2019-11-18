@@ -32,8 +32,6 @@ public abstract class MysqlParser<T> {
         int readBytes = packet.readerIndex() - startIndex;
         logger.info(String.format("packet len %s,startIndex %s readerIndex %s", packetLen, startIndex, packet.readerIndex()));
         if (readBytes < packetLen) {
-            //TODO
-//            packet.clear();
             packet.skipBytes(packetLen - readBytes);
         }
 

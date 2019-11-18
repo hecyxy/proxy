@@ -12,6 +12,9 @@ import space.cosmos.one.mysql.util.Pair;
 
 import java.net.InetSocketAddress;
 
+/**
+ * 复用NioEventLoopGroup 避免线程膨胀
+ */
 public class FrontedHandler extends ChannelInboundHandlerAdapter {
     private static final Logger logger = LoggerFactory.getLogger(FrontedHandler.class);
     private ConnectionConfig config;
@@ -19,6 +22,8 @@ public class FrontedHandler extends ChannelInboundHandlerAdapter {
     private Channel proxy2Server;
 
     private WrapStream cmdInfo = new WrapStream();
+
+    private Bootstrap bootstrap = new Bootstrap();
 
     FrontedHandler(ConnectionConfig config) {
         this.config = config;
@@ -56,8 +61,7 @@ public class FrontedHandler extends ChannelInboundHandlerAdapter {
         InetSocketAddress userAddress = (InetSocketAddress) ctx.channel().remoteAddress();
         String host = userAddress.getHostString();
         cmdInfo.setRemoteAddress(host);
-        Bootstrap boot = new Bootstrap();
-        boot.group(ctx.channel().eventLoop())
+        bootstrap.group(ctx.channel().eventLoop())
                 .channel(ctx.channel().getClass())
                 .remoteAddress(config.getBackend())
                 .handler(new ChannelInitializer<SocketChannel>() {
@@ -68,7 +72,7 @@ public class FrontedHandler extends ChannelInboundHandlerAdapter {
                         ch.pipeline().addLast("backend handler", new BackendHandler(ctx.channel(), cmdInfo));
                     }
                 });
-        ChannelFuture future = boot.connect();
+        ChannelFuture future = bootstrap.connect();
         proxy2Server = future.channel();
         future.addListener((ChannelFutureListener) listener -> {
             if (listener.isSuccess()) {
