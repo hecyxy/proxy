@@ -9,6 +9,10 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.logging.LoggingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import space.cosmos.one.binlog.handler.backend.netty.ClientAuthHandler;
+import space.cosmos.one.binlog.handler.backend.netty.MysqlPacketDecoder;
+import space.cosmos.one.binlog.handler.backend.netty.MysqlPacketEncoder;
+import space.cosmos.one.binlog.util.SystemConfig;
 
 public class BinlogServer {
     private static final Logger logger = LoggerFactory.getLogger(BinlogServer.class);
@@ -26,12 +30,20 @@ public class BinlogServer {
         strap.group(bossGroup)
                 .channel(NioSocketChannel.class)
                 .option(ChannelOption.TCP_NODELAY, true)
-                .option(ChannelOption.SO_KEEPALIVE, true)
+                .option(ChannelOption.SO_KEEPALIVE, false)
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
-//                        ch.pipeline().addLast()
+                        ch.pipeline().addLast("logging",new LoggingHandler());
+                        ch.pipeline().addLast(new MysqlPacketDecoder());
+                        ch.pipeline().addLast(new MysqlPacketEncoder());
+                        ch.pipeline().addLast(new ClientAuthHandler());
                     }
                 });
+        try {
+            strap.connect(SystemConfig.mysqlHost, SystemConfig.sqlPort).sync();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -9,7 +9,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-import static space.cosmos.one.mysql.util.BufferUtils.isReadable;
+import static space.cosmos.one.common.util.BufferUtils.isReadable;
+
 
 /**
  * @Description 两种方式解决粘包问题
@@ -23,9 +24,8 @@ public class MysqlDecoder extends ByteToMessageDecoder {
             logger.info("readable bytes,{}", in.readableBytes());
             ByteBuf three = in.readBytes(3);
             byte two = in.readByte();
-            //这里有一处修改
             int length = three.getUnsignedMediumLE(three.readerIndex());
-            ByteBuf buf = ByteBufAllocator.DEFAULT.buffer(length + 4);
+            ByteBuf buf = ctx.alloc().buffer(length + 4);
             buf.writeBytes(three);
             buf.writeByte(two);
             buf.writeBytes(in.readBytes(length));

@@ -4,14 +4,15 @@ import io.netty.buffer.ByteBuf;
 import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import space.cosmos.one.mysql.codec.*;
-import space.cosmos.one.mysql.codec.message.EofMessage;
+import space.cosmos.one.common.packet.*;
+import space.cosmos.one.common.packet.message.EofMessage;
+import space.cosmos.one.common.util.BufferUtils;
 
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static space.cosmos.one.mysql.codec.message.PacketHeader.PACKET_ERR;
-import static space.cosmos.one.mysql.codec.message.PacketHeader.PACKET_OK;
+import static space.cosmos.one.common.packet.message.PacketHeader.PACKET_ERR;
+import static space.cosmos.one.common.packet.message.PacketHeader.PACKET_OK;
 import static space.cosmos.one.mysql.util.WrapStream.State.*;
 
 public class WrapStream implements Runnable {
