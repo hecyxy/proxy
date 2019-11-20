@@ -7,10 +7,15 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import space.cosmos.one.binlog.handler.ConnectionState;
+import space.cosmos.one.binlog.handler.backend.result.handler.PositionResultHandler;
+import space.cosmos.one.binlog.handler.factory.BackendConnection;
 import space.cosmos.one.binlog.handler.request.AuthRequest;
+import space.cosmos.one.binlog.handler.request.ClientRequest;
+import space.cosmos.one.binlog.handler.request.CommandRequest;
 import space.cosmos.one.binlog.util.AuthUtil;
 import space.cosmos.one.binlog.util.SystemConfig;
 import space.cosmos.one.common.packet.HandshakeParser;
+import space.cosmos.one.common.packet.message.Command;
 import space.cosmos.one.common.packet.message.CsGreeting;
 import space.cosmos.one.common.util.BufferUtils;
 
@@ -25,6 +30,11 @@ public class ClientAuthHandler extends ChannelInboundHandlerAdapter {
 
     private ConnectionState state = ConnectionState.NOT_AUTH;
 
+    private BackendConnection connection;
+
+    public ClientAuthHandler(BackendConnection connection) {
+        this.connection = connection;
+    }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -110,7 +120,7 @@ public class ClientAuthHandler extends ChannelInboundHandlerAdapter {
         switch (packType) {
             case RESPONSE_OK:
                 logger.info("auth ok ...");
-                ctx.pipeline().replace(this, "command adapter", new BackendCommandHandler());
+                startDumBinlog(ctx);
 
                 break;
             case RESPONSE_ERROR:
@@ -119,6 +129,17 @@ public class ClientAuthHandler extends ChannelInboundHandlerAdapter {
             default:
                 logger.info("unknown packet");
                 break;
+        }
+    }
+
+    private void startDumBinlog(ChannelHandlerContext ctx) {
+        ctx.pipeline().replace(this, "command adapter", new BackendCommandHandler());
+        if (connection.getBinlogContext().getBinlogFileName() == null) {
+            connection.setResultSetHandler(new PositionResultHandler(connection));
+            ctx.writeAndFlush(new CommandRequest(Command.QUERY, BufferUtils.wrapString("show master status")));
+        } else {
+            ctx.writeAndFlush(new CommandRequest(Command.QUERY, BufferUtils.wrapString("show global variables like 'gtid_mode'")));
+//            connection.setResultSetHander(new GitModeResultHandler(source));
         }
     }
 }

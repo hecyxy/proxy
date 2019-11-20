@@ -14,11 +14,11 @@ public class CommandRequest extends ClientRequest {
 
     private Map<String, Object> extraData = new HashMap<>();
 
-    public CommandRequest(Command cmd, Promise promise, ByteBuf data) {
-        this(cmd, promise, data, 0x00);
+    public CommandRequest(Command cmd, ByteBuf data) {
+        this(cmd, data, 0x00);
     }
 
-    public CommandRequest(Command cmd, Promise promise, ByteBuf data, int sequenceNo) {
+    public CommandRequest(Command cmd, ByteBuf data, int sequenceNo) {
         super(sequenceNo);
         this.cmd = cmd;
         this.data = data;

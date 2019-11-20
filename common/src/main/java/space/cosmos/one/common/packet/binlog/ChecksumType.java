@@ -1,4 +1,4 @@
-package space.cosmos.one.binlog.handler.backend.result;
+package space.cosmos.one.common.packet.binlog;
 
 
 public enum ChecksumType {

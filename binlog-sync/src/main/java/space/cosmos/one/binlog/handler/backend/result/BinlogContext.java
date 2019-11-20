@@ -1,5 +1,7 @@
 package space.cosmos.one.binlog.handler.backend.result;
 
+import space.cosmos.one.common.packet.binlog.ChecksumType;
+
 public class BinlogContext {
 
     private String binlogFileName;

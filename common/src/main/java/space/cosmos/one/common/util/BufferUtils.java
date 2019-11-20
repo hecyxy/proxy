@@ -1,13 +1,16 @@
 package space.cosmos.one.common.util;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.util.ByteProcessor;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 public final class BufferUtils {
 
+    private final static ByteBufAllocator allocator = ByteBufAllocator.DEFAULT;
 
     public static void readNullString(ByteBuf from, ByteBuf to) {
         int len = from.forEachByte(ByteProcessor.FIND_NUL) - from.readerIndex();
@@ -95,5 +98,19 @@ public final class BufferUtils {
         }
     }
 
+    public static int bigEndianInteger(byte[] bytes, int offset, int length) {
+        int result = 0;
+        for (int i = offset; i < (offset + length); i++) {
+            byte b = bytes[i];
+            result = (result << 8) | (b >= 0 ? (int) b : (b + 256));
+        }
+        return result;
+    }
+
+    public static ByteBuf wrapString(String text) {
+        ByteBuf data = allocator.buffer();
+        data.writeCharSequence(text, Charset.forName("UTF-8"));
+        return data;
+    }
 
 }
