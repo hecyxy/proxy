@@ -127,7 +127,7 @@ public class GtidSet {
         }
         return sb.substring(0, sb.length() - delimiter.length());
     }
-    static final class UUIDSet {
+   public static final class UUIDSet {
         private String uuid;
         private Collection<Interval> intervals;
 
@@ -145,7 +145,7 @@ public class GtidSet {
         }
     }
 
-    static final class Interval implements Comparable<Interval> {
+    public static final class Interval implements Comparable<Interval> {
 
         private long start;
         private long end;

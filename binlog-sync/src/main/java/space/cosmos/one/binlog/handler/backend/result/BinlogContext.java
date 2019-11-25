@@ -1,5 +1,6 @@
 package space.cosmos.one.binlog.handler.backend.result;
 
+import space.cosmos.one.binlog.handler.backend.result.handler.ResultSet;
 import space.cosmos.one.common.packet.binlog.ChecksumType;
 
 public class BinlogContext {
@@ -14,6 +15,21 @@ public class BinlogContext {
 
     private ChecksumType checksumType;
 
+    public void handlePositionResult(ResultSet resultSet) {
+        String[] row = resultSet.getRows().get(0);
+        binlogFileName = row[0];
+        binlogPosition = Long.parseLong(row[1]);
+        // 低版本兼容
+        if (row.length > 4) {
+            executedGtidSet = row[4].replace("\n", "");
+        }
+        checksumType = ChecksumType.NONE;
+    }
+
+
+    public void useGtidSet() {
+        gtidSet = new GtidSet(executedGtidSet);
+    }
 
     public String getBinlogFileName() {
         return binlogFileName;

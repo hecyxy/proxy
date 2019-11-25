@@ -120,12 +120,18 @@ public class Bootstrap extends Thread {
 
     }
 
-    public void shutdown() {
-        instanceObserver.onCompleted();
-        channel.shutdown();
-        latch.countDown();
-        recorder.shutdown();
-        scheduler.shutdown();
-        instanceList.clear();
+    private void shutdown() {
+        try {
+            instanceObserver.onCompleted();
+        } catch (Exception e) {
+            logger.warn("grpc close exception,can be ignored...");
+        } finally {
+            channel.shutdown();
+            latch.countDown();
+            recorder.shutdown();
+            scheduler.shutdown();
+            instanceList.clear();
+        }
+
     }
 }
