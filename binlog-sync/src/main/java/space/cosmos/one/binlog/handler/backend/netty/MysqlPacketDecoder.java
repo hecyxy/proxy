@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.ByteOrder;
 
+
 public class MysqlPacketDecoder extends LengthFieldBasedFrameDecoder {
     private static final Logger logger = LoggerFactory.getLogger(MysqlPacketDecoder.class);
 

@@ -10,7 +10,6 @@ import space.cosmos.one.binlog.handler.ConnectionState;
 import space.cosmos.one.binlog.handler.backend.result.handler.PositionResultHandler;
 import space.cosmos.one.binlog.handler.factory.BackendConnection;
 import space.cosmos.one.binlog.handler.request.AuthRequest;
-import space.cosmos.one.binlog.handler.request.ClientRequest;
 import space.cosmos.one.binlog.handler.request.CommandRequest;
 import space.cosmos.one.binlog.util.AuthUtil;
 import space.cosmos.one.binlog.util.SystemConfig;
@@ -121,7 +120,6 @@ public class ClientAuthHandler extends ChannelInboundHandlerAdapter {
             case RESPONSE_OK:
                 logger.info("auth ok ...");
                 startDumBinlog(ctx);
-
                 break;
             case RESPONSE_ERROR:
                 logger.info("auth error");

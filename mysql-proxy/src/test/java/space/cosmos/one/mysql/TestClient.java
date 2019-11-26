@@ -9,6 +9,7 @@ import org.junit.Test;
 import space.cosmos.one.proxy.mysql.InstanceServiceGrpc;
 import space.cosmos.one.proxy.mysql.ListInstance;
 
+import java.util.ArrayList;
 import java.util.stream.Stream;
 
 public class TestClient {
@@ -53,6 +54,7 @@ public class TestClient {
     @Test
     public void test1() {
         int a = 10;
+        new ArrayList<String>(19);
         while (true) {
             switch (a) {
                 case 1:
