@@ -14,20 +14,6 @@ public abstract class ResultSetHandler {
         this.source = source;
     }
 
-    public void handleResultSet(ResultSet resultSet) {
-        doHandleResultSet(resultSet);
-        //TODO
-//        resultSet.clear();
-    }
 
-    public void doOkay(OkMessage okMsg) {
-    }
-
-    public void doErr(ErrorMessage err) {
-        throw new RuntimeException(err.getErrMsg());
-    }
-
-    public void doHandleResultSet(ResultSet resultSet) {
-    }
 
 }
