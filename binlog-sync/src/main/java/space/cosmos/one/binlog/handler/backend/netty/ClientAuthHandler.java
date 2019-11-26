@@ -7,6 +7,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import space.cosmos.one.binlog.handler.ConnectionState;
+import space.cosmos.one.binlog.handler.backend.result.handler.GitModeResultHandler;
 import space.cosmos.one.binlog.handler.backend.result.handler.PositionResultHandler;
 import space.cosmos.one.binlog.handler.factory.BackendConnection;
 import space.cosmos.one.binlog.handler.request.AuthRequest;
@@ -137,7 +138,7 @@ public class ClientAuthHandler extends ChannelInboundHandlerAdapter {
             ctx.writeAndFlush(new CommandRequest(Command.QUERY, BufferUtils.wrapString("show master status")));
         } else {
             ctx.writeAndFlush(new CommandRequest(Command.QUERY, BufferUtils.wrapString("show global variables like 'gtid_mode'")));
-//            connection.setResultSetHander(new GitModeResultHandler(source));
+            connection.setResultSetHandler(new GitModeResultHandler(connection));
         }
     }
 }

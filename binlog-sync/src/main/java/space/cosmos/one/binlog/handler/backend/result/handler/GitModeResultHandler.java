@@ -1,6 +1,9 @@
 package space.cosmos.one.binlog.handler.backend.result.handler;
 
 import space.cosmos.one.binlog.handler.factory.BackendConnection;
+import space.cosmos.one.binlog.handler.request.CommandRequest;
+import space.cosmos.one.common.packet.message.Command;
+import space.cosmos.one.common.util.BufferUtils;
 
 public class GitModeResultHandler extends ResultSetHandler {
     public GitModeResultHandler(BackendConnection source) {
@@ -16,6 +19,6 @@ public class GitModeResultHandler extends ResultSetHandler {
             }
         }
         source.setResultSetHandler(new ChecksumResultHandler(source));
-        //todo
+        source.getCtx().writeAndFlush(new CommandRequest(Command.QUERY, BufferUtils.wrapString("show global variables like 'binlog_checksum'")));
     }
 }
