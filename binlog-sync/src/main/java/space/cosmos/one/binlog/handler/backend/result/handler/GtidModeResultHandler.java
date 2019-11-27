@@ -11,7 +11,7 @@ public class GtidModeResultHandler extends ResultSetHandler {
     }
 
     @Override
-    public void handleResultSet(ResultSet resultSet) {
+    public void doHandleResultSet(ResultSet resultSet) {
         if (!resultSet.getRows().isEmpty()) {
             String[] row = resultSet.getRows().get(0);
             if ("ON".equalsIgnoreCase(row[0])) {

@@ -1,7 +1,6 @@
 package space.cosmos.one.binlog.handler.backend.netty;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
@@ -10,7 +9,6 @@ import space.cosmos.one.binlog.handler.factory.BackendConnection;
 import space.cosmos.one.common.packet.binlog.Event;
 
 import static space.cosmos.one.common.packet.message.ResponseType.RESPONSE_ERROR;
-import static space.cosmos.one.common.packet.message.ResponseType.RESPONSE_OK;
 
 public class BinlogEventHandler extends ChannelInboundHandlerAdapter {
     private static final Logger logger = LoggerFactory.getLogger(BinlogEventHandler.class);

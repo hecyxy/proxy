@@ -86,6 +86,7 @@ public class BackendCommandHandler extends ChannelInboundHandlerAdapter {
                         // 重置,且告诉上层当前select已经处理完毕
                         resetSelect();
                         // 顺序不可变
+                        logger.info("this step... {}",source.getResultSetHandler().getClass().getSimpleName());
                         source.getResultSetHandler().handleResultSet(resultSet);
                         result = true;
                     }

@@ -1,9 +1,5 @@
 package space.cosmos.one.binlog.handler.request;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import space.cosmos.one.common.util.BufferUtils;
-
 public class DumpBinaryLogCommand extends ClientRequest {
     private long serverId;
     private String binlogFilename;

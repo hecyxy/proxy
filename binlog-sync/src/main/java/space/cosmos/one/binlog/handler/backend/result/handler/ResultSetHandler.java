@@ -14,6 +14,7 @@ import static space.cosmos.one.common.packet.message.PacketHeader.PACKET_OK;
 
 
 public abstract class ResultSetHandler {
+
     private static final Logger logger = LoggerFactory.getLogger(ResultSetHandler.class);
     protected BackendConnection source;
 
@@ -21,8 +22,12 @@ public abstract class ResultSetHandler {
         this.source = source;
     }
 
+    /**
+     * 抽象方法调用具体的实现
+     */
     public void handleResultSet(ResultSet resultSet) {
         doHandleResultSet(resultSet);
+        System.out.println("is on on on...");
         resultSet.clear();
     }
 
@@ -56,7 +61,6 @@ public abstract class ResultSetHandler {
     }
 
     public void doErr(ErrorMessage err) {
-
         throw new RuntimeException(err.getErrMsg());
     }
 

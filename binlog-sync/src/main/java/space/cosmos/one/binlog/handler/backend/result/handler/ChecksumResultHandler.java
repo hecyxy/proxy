@@ -23,13 +23,13 @@ public class ChecksumResultHandler extends ResultSetHandler {
 
 
     @Override
-    public void handleResultSet(ResultSet resultSet) {
+    public void doHandleResultSet(ResultSet resultSet) {
         logger.info("result set {}", resultSet.toString());
         String checksum;
         if (resultSet.getRows().isEmpty()) {
             checksum = "NONE";
         } else {
-            checksum = resultSet.getRows().get(1)[1];
+            checksum = resultSet.getRows().get(0)[1];
         }
         // 校验checksum
         if (ChecksumType.valueOf(checksum.toUpperCase()) == ChecksumType.NONE) {

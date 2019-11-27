@@ -47,7 +47,11 @@ public class MysqlPacketEncoder extends ChannelOutboundHandlerAdapter {
 
     public void encodeDumpBinaryCmd(ByteBuf buffer, DumpBinaryLogCommand dblc) {
         BufferUtils.writeUB3(buffer, 1 + 4 + 2 + 4 + dblc.getBinlogFilename().length());
-        buffer.writeByte(0);//dblc.getSequenceNo();
+        /**
+         * The sequence-id is incremented with each packet and may wrap around.
+         * It starts at 0 and is reset to 0 when a new command begins in the Command Phase
+         */
+        buffer.writeByte(0);//dblc.getSequenceNo(); packet no
         BufferUtils.writeInteger(buffer, Command.BINLOG_DUMP.code(), 1);
         BufferUtils.writeUB4(buffer, dblc.getBinlogPosition());
         // 00 flag

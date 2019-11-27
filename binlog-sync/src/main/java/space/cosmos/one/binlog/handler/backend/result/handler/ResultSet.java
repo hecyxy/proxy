@@ -1,9 +1,13 @@
 package space.cosmos.one.binlog.handler.backend.result.handler;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class ResultSet {
+    private static final Logger logger = LoggerFactory.getLogger(ResultSet.class);
     private int fieldCount;
     private List<String> fields;
     private List<String[]> rows;
@@ -48,6 +52,7 @@ public class ResultSet {
     }
 
     public void clear() {
+        logger.info("execute clear...");
         fields.clear();
         rows.clear();
     }
