@@ -14,9 +14,12 @@ public class PositionResultHandler extends ResultSetHandler {
     public void doHandleResultSet(ResultSet resultSet) {
         source.getBinlogContext().handlePositionResult(resultSet);
         // the next handler
-        source.setResultSetHandler(new GitModeResultHandler(source));
+        source.setResultSetHandler(new GtidModeResultHandler(source));
         // then post a new command to decide gtid use todo solve the proble
+        source.setSelecting(true);
+        System.out.println(source.getCtx() == null);
         source.getCtx().writeAndFlush(new CommandRequest(Command.QUERY, BufferUtils.wrapString("show global variables like 'gtid_mode'")));
+
 //        source.write(new CommandPacket("show global variables like 'gtid_mode'"));
     }
 }

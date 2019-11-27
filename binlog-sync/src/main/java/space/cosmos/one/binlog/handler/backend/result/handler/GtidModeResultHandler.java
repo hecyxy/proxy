@@ -6,7 +6,6 @@ import space.cosmos.one.common.packet.message.Command;
 import space.cosmos.one.common.util.BufferUtils;
 
 public class GtidModeResultHandler extends ResultSetHandler {
-
     public GtidModeResultHandler(BackendConnection source) {
         super(source);
     }
@@ -20,6 +19,7 @@ public class GtidModeResultHandler extends ResultSetHandler {
             }
         }
         source.setResultSetHandler(new ChecksumResultHandler(source));
+        source.setSelecting(true);
         source.getCtx().writeAndFlush(new CommandRequest(Command.QUERY, BufferUtils.wrapString("show global variables like 'binlog_checksum'")));
     }
 }

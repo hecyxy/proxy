@@ -113,4 +113,22 @@ public final class BufferUtils {
         return data;
     }
 
+    public static final void writeUB3(ByteBuf buffer, int i) {
+        buffer.writeByte((byte) (i & 0xff));
+        buffer.writeByte((byte) (i >>> 8));
+        buffer.writeByte((byte) (i >>> 16));
+    }
+    public static void writeInteger(ByteBuf buffer, int value, int length) {
+        for (int i = 0; i < length; i++) {
+            buffer.writeByte(0x000000FF & (value >>> (i << 3)));
+        }
+    }
+    public static final void writeUB4(ByteBuf buffer, long l) {
+        buffer.writeByte((byte) (l & 0xff));
+        buffer.writeByte((byte) (l >>> 8));
+        buffer.writeByte((byte) (l >>> 16));
+        buffer.writeByte((byte) (l >>> 24));
+    }
+
+
 }

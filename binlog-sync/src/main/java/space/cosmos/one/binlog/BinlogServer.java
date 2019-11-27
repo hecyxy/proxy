@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import space.cosmos.one.binlog.handler.backend.netty.ClientAuthHandler;
 import space.cosmos.one.binlog.handler.backend.netty.MysqlPacketDecoder;
 import space.cosmos.one.binlog.handler.backend.netty.MysqlPacketEncoder;
+import space.cosmos.one.binlog.handler.factory.BackendConnection;
 import space.cosmos.one.binlog.util.SystemConfig;
 
 public class BinlogServer {
@@ -34,10 +35,10 @@ public class BinlogServer {
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
-                        ch.pipeline().addLast("logging",new LoggingHandler());
+                        ch.pipeline().addLast("logging", new LoggingHandler());
                         ch.pipeline().addLast(new MysqlPacketDecoder());
                         ch.pipeline().addLast(new MysqlPacketEncoder());
-                        ch.pipeline().addLast(new ClientAuthHandler());
+                        ch.pipeline().addLast(new ClientAuthHandler(new BackendConnection()));
                     }
                 });
         try {

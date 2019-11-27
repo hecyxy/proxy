@@ -7,7 +7,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import space.cosmos.one.binlog.handler.ConnectionState;
-import space.cosmos.one.binlog.handler.backend.result.handler.GitModeResultHandler;
+import space.cosmos.one.binlog.handler.backend.result.handler.GtidModeResultHandler;
 import space.cosmos.one.binlog.handler.backend.result.handler.PositionResultHandler;
 import space.cosmos.one.binlog.handler.factory.BackendConnection;
 import space.cosmos.one.binlog.handler.request.AuthRequest;
@@ -15,6 +15,7 @@ import space.cosmos.one.binlog.handler.request.CommandRequest;
 import space.cosmos.one.binlog.util.AuthUtil;
 import space.cosmos.one.binlog.util.SystemConfig;
 import space.cosmos.one.common.packet.HandshakeParser;
+import space.cosmos.one.common.packet.message.CapabilityFlags;
 import space.cosmos.one.common.packet.message.Command;
 import space.cosmos.one.common.packet.message.CsGreeting;
 import space.cosmos.one.common.util.BufferUtils;
@@ -40,6 +41,7 @@ public class ClientAuthHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         switch (state) {
             case NOT_AUTH:
+                connection.setCtx(ctx);
                 auth(ctx, msg);
                 state = ConnectionState.AUTH_SUC;
                 break;
@@ -78,6 +80,7 @@ public class ClientAuthHandler extends ChannelInboundHandlerAdapter {
 	       /* if ((parser.getServerCapabilities() & CLIENT_CONNECT_ATTRS) != 0) {
 	            clientParam |= CLIENT_CONNECT_ATTRS;
 	        }*/
+        clientParam = (int) getClientFlags();
         if ((packet.getServerCapabilities() & CLIENT_PLUGIN_AUTH) != 0) {
             ByteBuf response = allocator.buffer();
             response.writeIntLE(clientParam);//capability flags, CLIENT_PROTOCOL_41 always set
@@ -115,6 +118,34 @@ public class ClientAuthHandler extends ChannelInboundHandlerAdapter {
         return null;
     }
 
+    /**
+     * 与MySQL连接时的一些特性指定
+     */
+    private static long getClientFlags() {
+        int flag = 0;
+        flag |= CapabilityFlags.CLIENT_LONG_PASSWORD;
+        flag |= CapabilityFlags.CLIENT_FOUND_ROWS;
+        flag |= CapabilityFlags.CLIENT_LONG_FLAG;
+        flag |= CapabilityFlags.CLIENT_CONNECT_WITH_DB;
+        // flag |= Capabilities.CLIENT_NO_SCHEMA;
+        // flag |= Capabilities.CLIENT_COMPRESS;
+        flag |= CapabilityFlags.CLIENT_ODBC;
+        // flag |= Capabilities.CLIENT_LOCAL_FILES;
+        flag |= CapabilityFlags.CLIENT_IGNORE_SPACE;
+        flag |= CapabilityFlags.CLIENT_PROTOCOL_41;
+        flag |= CapabilityFlags.CLIENT_INTERACTIVE;
+        // flag |= Capabilities.CLIENT_SSL;
+        flag |= CapabilityFlags.CLIENT_IGNORE_SIGPIPE;
+        flag |= CapabilityFlags.CLIENT_TRANSACTIONS;
+        // flag |= Capabilities.CLIENT_RESERVED;
+        flag |= CapabilityFlags.CLIENT_SECURE_CONNECTION;
+        // client extension
+        // 不允许MULTI协议
+        // flag |= Capabilities.CLIENT_MULTI_STATEMENTS;
+        // flag |= Capabilities.CLIENT_MULTI_RESULTS;
+        return flag;
+    }
+
     private void decodeAuthResponse(ByteBuf msg, ChannelHandlerContext ctx) {
         short packType = msg.getUnsignedByte(msg.readerIndex() + 4);
         switch (packType) {
@@ -132,13 +163,15 @@ public class ClientAuthHandler extends ChannelInboundHandlerAdapter {
     }
 
     private void startDumBinlog(ChannelHandlerContext ctx) {
-        ctx.pipeline().replace(this, "command adapter", new BackendCommandHandler());
+        ctx.pipeline().replace(this, "BackendCommandHandler", new BackendCommandHandler(connection));
+        connection.setSelecting(true);
         if (connection.getBinlogContext().getBinlogFileName() == null) {
+            logger.info("file name is null");
             connection.setResultSetHandler(new PositionResultHandler(connection));
             ctx.writeAndFlush(new CommandRequest(Command.QUERY, BufferUtils.wrapString("show master status")));
         } else {
             ctx.writeAndFlush(new CommandRequest(Command.QUERY, BufferUtils.wrapString("show global variables like 'gtid_mode'")));
-            connection.setResultSetHandler(new GitModeResultHandler(connection));
+            connection.setResultSetHandler(new GtidModeResultHandler(connection));
         }
     }
 }

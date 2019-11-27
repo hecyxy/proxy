@@ -13,5 +13,10 @@ public class CapabilityFlags {
     public final static int CLIENT_PLUGIN_AUTH = 0x80000;
     public final static int CLIENT_SECURE_CONNECTION = 0x8000;
     public static final int CLIENT_FOUND_ROWS = 0x00000002;
-    public  static final int CLIENT_CONNECT_ATTRS = 0x00100000;
+    public static final int CLIENT_CONNECT_ATTRS = 0x00100000;
+    // Odbc client
+    public static final int CLIENT_ODBC = 64;
+    public static final int CLIENT_IGNORE_SPACE = 256;
+    public static final int CLIENT_INTERACTIVE = 1024;
+    public static final int CLIENT_IGNORE_SIGPIPE = 4096;
 }

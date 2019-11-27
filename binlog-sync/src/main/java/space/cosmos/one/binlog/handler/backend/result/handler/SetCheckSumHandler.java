@@ -4,9 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import space.cosmos.one.binlog.handler.backend.netty.BinlogEventHandler;
 import space.cosmos.one.binlog.handler.factory.BackendConnection;
+import space.cosmos.one.binlog.handler.request.CommandRequest;
 import space.cosmos.one.binlog.handler.request.DumpBinaryLogCommand;
 import space.cosmos.one.binlog.handler.request.DumpBinaryLogGtidCommand;
 import space.cosmos.one.binlog.util.SystemConfig;
+import space.cosmos.one.common.packet.message.Command;
 import space.cosmos.one.common.packet.message.OkMessage;
 
 public class SetCheckSumHandler extends ResultSetHandler {
@@ -34,8 +36,9 @@ public class SetCheckSumHandler extends ResultSetHandler {
         DumpBinaryLogCommand command =
                 new DumpBinaryLogCommand(SystemConfig.serverId, source.getBinlogContext().getBinlogFileName()
                         , source.getBinlogContext().getBinlogPosition());
-//        source.getCtx().writeAndFlush(command.getByteBuf(source.getCtx()));
-        logger.debug("send dump command");
+        logger.debug("command {}",command.toString());
+        source.getCtx().writeAndFlush(command);
+        logger.debug(" set checksum send dump command");
     }
 
     private void sendDumpBinaryLogGtid() {

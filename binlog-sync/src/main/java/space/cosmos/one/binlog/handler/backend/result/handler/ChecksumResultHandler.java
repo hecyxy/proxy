@@ -24,11 +24,12 @@ public class ChecksumResultHandler extends ResultSetHandler {
 
     @Override
     public void handleResultSet(ResultSet resultSet) {
+        logger.info("result set {}", resultSet.toString());
         String checksum;
         if (resultSet.getRows().isEmpty()) {
             checksum = "NONE";
         } else {
-            checksum = resultSet.getRows().get(0)[1];
+            checksum = resultSet.getRows().get(1)[1];
         }
         // 校验checksum
         if (ChecksumType.valueOf(checksum.toUpperCase()) == ChecksumType.NONE) {
@@ -44,10 +45,11 @@ public class ChecksumResultHandler extends ResultSetHandler {
             DecoderConfig.checksumType = ChecksumType.CRC32;
             source.setResultSetHandler(new SetCheckSumHandler(source));
             // set binlog_checksum todo write no select是什么意思
+            source.setSelecting(false);
             source.getCtx().writeAndFlush(new CommandRequest(Command.QUERY, BufferUtils.wrapString("set @master_binlog_checksum= @@global.binlog_checksum")));
 //            source.writeNoSelect();
         } else {
-            throw new RuntimeException("Unknow checksum type:" + ChecksumType.valueOf(checksum.toUpperCase()));
+            throw new RuntimeException("Unknown checksum type:" + ChecksumType.valueOf(checksum.toUpperCase()));
         }
     }
 
@@ -62,7 +64,7 @@ public class ChecksumResultHandler extends ResultSetHandler {
                 new DumpBinaryLogCommand(SystemConfig.serverId, source.getBinlogContext().getBinlogFileName()
                         , source.getBinlogContext().getBinlogPosition());
         //todo
-//        source.getCtx().writeAndFlush(command.getByteBuf(source.getCtx()));
+        source.getCtx().writeAndFlush(command);
         logger.debug("send dump command");
     }
 

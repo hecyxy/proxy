@@ -33,18 +33,21 @@ public abstract class ResultSetHandler {
         switch (packetType) {
             case PACKET_OK:
                 OkParser ok = new OkParser(in);
-                if (ok.decode()) {
+                if (!ok.decode()) {
                     logger.info("ok msg {}", ok.getBody());
                 }
+                doOkay(ok.getBody());
+                logger.info("ok msg {}", ok.getBody());
                 break;
             case PACKET_ERR:
                 ErrorParser err = new ErrorParser(in);
-                if (err.decode()) {
+                if (!err.decode()) {
                     logger.info("ok msg {}", err.getBody());
                 }
+                logger.info("error msg {}", err.getBody());
                 break;
             default:
-
+                logger.warn("unknown message {}", packetType);
         }
     }
 

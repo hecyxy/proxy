@@ -8,7 +8,7 @@ public class SystemConfig {
     public static final int sqlPort = 3306;//8806;
     public static final String userName = "root";//"dev";
     public static final String pwd = "123456";//"haolie123";
-    public static final long serverId = 1; //1
+    public static final long serverId = 2; //1
 
     public static final String dataBase = "test";
     public static final int idleCheckInterval = 5000;

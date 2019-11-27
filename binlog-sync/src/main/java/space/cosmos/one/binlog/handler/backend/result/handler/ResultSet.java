@@ -38,17 +38,42 @@ public class ResultSet {
         this.rows = rows;
     }
 
+
+    public void addField(String field) {
+        fields.add(field);
+    }
+
+    public void addRow(String[] row) {
+        rows.add(row);
+    }
+
     public void clear() {
         fields.clear();
         rows.clear();
+    }
+
+    private String joinToString(List<String> lis) {
+        StringBuilder sb = new StringBuilder();
+        lis.forEach(a -> sb.append(a).append(","));
+        return sb.toString();
+    }
+
+    private String rowSjoinToString() {
+        StringBuilder sb = new StringBuilder();
+        rows.forEach(a -> {
+            for (int i = 0; i < a.length; i++) {
+                sb.append(a[i]).append(",");
+            }
+        });
+        return sb.toString();
     }
 
     @Override
     public String toString() {
         return "ResultSet{" +
                 "fieldCount=" + fieldCount +
-                ", fields=" + fields +
-                ", rows=" + rows +
+                ", fields=" + joinToString(fields) +
+                ", rows=" + rowSjoinToString() +
                 '}';
     }
 }

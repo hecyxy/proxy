@@ -8,6 +8,17 @@ public class BackendConnection {
     private int charsetIndex;
     private String charset;
     private long threadId;
+
+    public boolean isSelecting() {
+        return selecting;
+    }
+
+    public void setSelecting(boolean selecting) {
+        this.selecting = selecting;
+    }
+
+    private volatile boolean selecting;
+
     private ChannelHandlerContext ctx;
 
     private BinlogContext binlogContext;

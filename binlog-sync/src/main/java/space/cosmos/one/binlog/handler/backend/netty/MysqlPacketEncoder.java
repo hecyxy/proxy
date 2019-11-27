@@ -8,6 +8,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import space.cosmos.one.binlog.handler.request.AuthRequest;
 import space.cosmos.one.binlog.handler.request.CommandRequest;
+import space.cosmos.one.binlog.handler.request.DumpBinaryLogCommand;
+import space.cosmos.one.common.packet.message.Command;
+import space.cosmos.one.common.util.BufferUtils;
 
 public class MysqlPacketEncoder extends ChannelOutboundHandlerAdapter {
 
@@ -32,9 +35,26 @@ public class MysqlPacketEncoder extends ChannelOutboundHandlerAdapter {
             } finally {
                 ((CommandRequest) msg).getData().release();
             }
+        } else if (msg instanceof DumpBinaryLogCommand) {
+            logger.info("dump binary log cmd");
+            encodeDumpBinaryCmd(send, (DumpBinaryLogCommand) msg);
+            ctx.write(send);
+
         } else {
             throw new RuntimeException("unknown request");
         }
+    }
+
+    public void encodeDumpBinaryCmd(ByteBuf buffer, DumpBinaryLogCommand dblc) {
+        BufferUtils.writeUB3(buffer, 1 + 4 + 2 + 4 + dblc.getBinlogFilename().length());
+        buffer.writeByte(0);//dblc.getSequenceNo();
+        BufferUtils.writeInteger(buffer, Command.BINLOG_DUMP.code(), 1);
+        BufferUtils.writeUB4(buffer, dblc.getBinlogPosition());
+        // 00 flag
+        buffer.writeByte(0);
+        buffer.writeByte(0);
+        BufferUtils.writeUB4(buffer, dblc.getServerId());
+        buffer.writeBytes(dblc.getBinlogFilename().getBytes());
     }
 
     private void encode(AuthRequest msg, ByteBuf buf) {
