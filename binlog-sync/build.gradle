@@ -1,7 +1,12 @@
 apply plugin: 'application'
 
+//apply plugin: "me.champeau.gradle.jmh"
 mainClassName = "space.cosmos.one.mysql.Bootstrap"
 
 dependencies {
     compile project(':common')
+    compile group: 'org.openjdk.jmh', name: 'jmh-core', version: '1.21'
+    // https://mvnrepository.com/artifact/org.openjdk.jmh/jmh-generator-annprocess
+    compile group: 'org.openjdk.jmh', name: 'jmh-generator-annprocess', version: '1.21'
+
 }
