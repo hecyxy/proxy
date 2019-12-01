@@ -14,6 +14,7 @@ public class TestClean {
 
     /**
      * 先执行cleaner 再执行clean即可回收
+     *
      * @throws InvocationTargetException
      * @throws IllegalAccessException
      */
@@ -64,5 +65,10 @@ public class TestClean {
         } catch (NoSuchMethodException e) {
             return target.getClass().getDeclaredMethod(methodName, args);
         }
+    }
+
+    @Test
+    public Void getStr() {
+        return null;
     }
 }
