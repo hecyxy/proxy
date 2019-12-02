@@ -4,4 +4,5 @@ include 'grpc'
 include 'server'
 include 'binlog-sync'
 include 'common'
+include 'net'
 

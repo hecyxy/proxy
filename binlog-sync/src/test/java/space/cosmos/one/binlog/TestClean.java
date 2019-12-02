@@ -11,7 +11,12 @@ import java.security.PrivilegedAction;
 
 public class TestClean {
 
-
+    @Test
+    public void get0(){
+        ByteBuffer b = ByteBuffer.allocateDirect(10);
+        b.putInt(10);
+        System.out.println(b.getInt());
+    }
     /**
      * 先执行cleaner 再执行clean即可回收
      *
@@ -70,5 +75,53 @@ public class TestClean {
     @Test
     public Void getStr() {
         return null;
+    }
+
+
+
+    public static void clean(final ByteBuffer buffer) {
+        if (buffer == null || !buffer.isDirect() || buffer.capacity() == 0)
+            return;
+        invoke(invoke(viewed(buffer), "cleaner"), "clean");
+    }
+
+    private static Object invoke1(final Object target, final String methodName, final Class<?>... args) {
+        return AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
+            try {
+                Method method = method1(target, methodName, args);
+                method.setAccessible(true);
+                return method.invoke(target);
+            } catch (Exception e) {
+//                    log.error(String.format("invoke method excetpion{%s}", e.getMessage()));
+                throw new IllegalStateException(e);
+            }
+        });
+    }
+
+    private static Method method1(Object target, String methodName, Class<?>[] args) throws NoSuchMethodException {
+        try {
+            return target.getClass().getMethod(methodName, args);
+        } catch (NoSuchMethodException e) {
+            return target.getClass().getDeclaredMethod(methodName, args);
+        }
+    }
+
+    private static ByteBuffer viewed(ByteBuffer buffer) {
+        String methodName = "viewedBuffer";
+
+        // JDK7中将DirectByteBuffer类中的viewedBuffer方法换成了attachment方法
+        Method[] methods = buffer.getClass().getMethods();
+        for (int i = 0; i < methods.length; i++) {
+            if (methods[i].getName().equals("attachment")) {
+                methodName = "attachment";
+                break;
+            }
+        }
+
+        ByteBuffer viewedBuffer = (ByteBuffer) invoke1(buffer, methodName);
+        if (viewedBuffer == null)
+            return buffer;
+        else
+            return viewed(viewedBuffer);
     }
 }
