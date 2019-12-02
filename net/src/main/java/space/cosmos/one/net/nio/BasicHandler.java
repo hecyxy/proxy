@@ -30,7 +30,6 @@ public class BasicHandler implements Runnable {
         sk = socket.register(sel, 0); // 注册通道
         sk.interestOps(SelectionKey.OP_READ); // 绑定要处理的事件
         sk.attach(this); // 管理事件的处理程序
-
         sel.wakeup(); // 唤醒 select() 方法
     }
 

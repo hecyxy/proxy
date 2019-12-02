@@ -107,7 +107,7 @@ public class MultiReactor {
 
                     // 如何解决呢，直接调用 wakeup，有可能还没有注册成功又阻塞了。这是一个多线程同步的问题，可以借助队列进行处理
                     Reactor subReactor = subReactors[next];
-                    subReactor.reigster(new BasicHandler(sc));
+                    subReactor.register(new BasicHandler(sc));
 //					new MultithreadHandler(subSel, sc);
                     if (++next == subReactors.length) next = 0;
                 }
@@ -160,7 +160,7 @@ public class MultiReactor {
             if (r != null) r.run();
         }
 
-        void reigster(BasicHandler basicHandler) {
+        void register(BasicHandler basicHandler) {
             events.offer(basicHandler);
             selector.wakeup();
         }
