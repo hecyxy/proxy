@@ -29,7 +29,7 @@ public class MultithreadHandler extends BasicHandler {
 
                 // 读取完毕后将后续的处理交给
                 state = PROCESSING;
-                workPool.execute(new Processer());
+                workPool.execute(new Processor());
             }
         }
     }
@@ -58,7 +58,7 @@ public class MultithreadHandler extends BasicHandler {
         }
     }
 
-    class Processer implements Runnable {
+    class Processor implements Runnable {
         @Override
         public void run() {
             processAndHandOff();

@@ -10,6 +10,7 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
 
+@SuppressWarnings("ALL")
 public class Reactor implements Runnable {
     final Selector selector;
     final ServerSocketChannel serverSocket;
